@@ -26,7 +26,8 @@ You are running `/pm-init` for the **current workspace project root**.
    - `existing`: build files, source tree, or app config present
    - If `.specify/` exists, mark Spec Kit project and prioritize constitution/specs.
 
-2. **Run scaffold script** (preferred):
+2. **Run scaffold** (preferred):
+   - CLI: `pm init <root>` (also runs non-interactive `npx skills add wei63w/pm-manager -y` unless `--no-skills-sh` / `--scaffold-only`)
    - PowerShell: `scripts/powershell/create-pm-scaffold.ps1 -ProjectRoot <root>`
    - Or Python: `python scripts/python/create_pm_scaffold.py <root>`
    - If scripts unavailable, create the same directory tree manually from `templates/pm/`.

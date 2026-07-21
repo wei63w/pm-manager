@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.table import Table
 
 from pm_manager_cli import __version__
-from pm_manager_cli.agents import install_agents
+from pm_manager_cli.agents import install_agents, install_skills_sh
 from pm_manager_cli.architecture import write_architecture
 from pm_manager_cli.dashboard import write_dashboard
 from pm_manager_cli.scaffold import ensure_git_exclude, scaffold
@@ -71,6 +71,11 @@ def init_cmd(
         "--scaffold-only",
         help="Only create .pm/ (skip agent skill/command install)",
     ),
+    skills_sh: bool = typer.Option(
+        True,
+        "--skills-sh/--no-skills-sh",
+        help="Also run non-interactive `npx skills add wei63w/pm-manager -y`",
+    ),
 ) -> None:
     """Create .pm/ workbench and optionally install Cursor/Claude adapters."""
     root = _resolve_root(path)
@@ -92,6 +97,20 @@ def init_cmd(
         for name, dest in results.items():
             console.print(f"[green]OK[/green] Installed {name} -> {dest}")
 
+    # skills.sh telemetry + multi-agent install (best-effort, non-interactive)
+    if skills_sh and not scaffold_only:
+        ok, msg = install_skills_sh(root)
+        if ok:
+            console.print(f"[green]OK[/green] skills.sh: {msg}")
+            # Re-apply bundled adapters so this CLI pack version wins over clone
+            if chosen != "none":
+                install_agents(root, chosen)  # type: ignore[arg-type]
+                console.print(
+                    "[green]OK[/green] Re-synced local adapters from this CLI pack"
+                )
+        else:
+            console.print(f"[yellow]WARN[/yellow] skills.sh: {msg}")
+
     console.print()
     console.print("[bold]Next (in your AI coding agent):[/bold]")
     console.print("  /pm-init     # detect project, charter discovery, outline")
@@ -109,6 +128,11 @@ def install_cmd(
         "-a",
         help="cursor | claude | all",
     ),
+    skills_sh: bool = typer.Option(
+        True,
+        "--skills-sh/--no-skills-sh",
+        help="Also run non-interactive `npx skills add wei63w/pm-manager -y`",
+    ),
 ) -> None:
     """Install or refresh agent adapters into a project (no scaffold)."""
     root = _resolve_root(path)
@@ -118,6 +142,17 @@ def install_cmd(
     results = install_agents(root, chosen)  # type: ignore[arg-type]
     for name, dest in results.items():
         console.print(f"[green]OK[/green] Installed {name} -> {dest}")
+
+    if skills_sh:
+        ok, msg = install_skills_sh(root)
+        if ok:
+            console.print(f"[green]OK[/green] skills.sh: {msg}")
+            install_agents(root, chosen)  # type: ignore[arg-type]
+            console.print(
+                "[green]OK[/green] Re-synced local adapters from this CLI pack"
+            )
+        else:
+            console.print(f"[yellow]WARN[/yellow] skills.sh: {msg}")
 
 
 @app.command("check")

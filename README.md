@@ -74,6 +74,8 @@ In your **application** repository (not required to keep this pack checked out):
 cd /path/to/your-app
 
 # Create .pm/ + install Cursor & Claude adapters (default)
+# Also runs non-interactive: npx skills add wei63w/pm-manager -y
+# (skills.sh indexing; requires Node.js/npx — skipped with a warning if missing)
 pm init
 
 # Cursor only
@@ -82,14 +84,18 @@ pm init --agent cursor
 # Claude Code only
 pm init --agent claude
 
-# Scaffold .pm/ only (no agent files)
+# Scaffold .pm/ only (no agent files, no skills.sh)
 pm init --scaffold-only
+
+# Skip skills.sh / npx step
+pm init --no-skills-sh
 ```
 
 Refresh adapters without re-scaffolding:
 
 ```bash
 pm install --agent all
+pm install --no-skills-sh   # adapters only
 pm check
 ```
 
@@ -146,10 +152,12 @@ After the scan, open **`.pm/dashboard/index.html`** in a browser for the visual 
 | Command                                  | Description                            |
 | ---------------------------------------- | -------------------------------------- |
 | `pm version`                             | Print CLI version                      |
-| `pm init [path]`                         | Create `.pm/` + install agent adapters |
+| `pm init [path]`                         | Create `.pm/` + install agent adapters (+ skills.sh) |
 | `pm init --agent cursor|claude|all|none` | Choose which adapters to install       |
 | `pm init --scaffold-only`                | Only create `.pm/`                     |
+| `pm init --no-skills-sh`                 | Skip `npx skills add wei63w/pm-manager` |
 | `pm install --agent …`                   | Refresh adapters without scaffolding   |
+| `pm install --no-skills-sh`              | Refresh adapters only                  |
 | `pm check [path]`                        | Show whether `.pm/` and adapters exist |
 | `pm dashboard [path]`                    | Rebuild `.pm/dashboard/` from module findings/todos |
 | `pm arch [path]`                         | Scan project → Mermaid diagrams under `.pm/architecture/` |
