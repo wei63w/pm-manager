@@ -25,6 +25,7 @@
 
 - [What is PM Manager?](#-what-is-pm-manager)
 - [Get Started](#-get-started)
+- [CLI Reference](#-cli-reference)
 - [Supported AI Coding Agents](#-supported-ai-coding-agents)
 - [Available Slash Commands](#-available-slash-commands)
 - [How it relates to Spec Kit](#-how-it-relates-to-spec-kit)
@@ -43,36 +44,66 @@ It is **not** a cloud PM suite and **not** a replacement for Jira/Linear. It is 
 
 ## Get Started
 
-### 1. Clone the skill pack
+### 1. Install the CLI (cross-platform)
+
+Requires **[uv](https://docs.astral.sh/uv/)** and **Python 3.11+**.
 
 ```bash
-git clone https://github.com/wei63w/pm-manager.git
-cd pm-manager
+# From GitHub (recommended)
+uv tool install pm-manager-cli --from git+https://github.com/wei63w/pm-manager.git
+
+# Or from a local checkout
+uv tool install --editable .
 ```
 
-### 2. Install into your project
-
-**Cursor** (copies the pack into `.cursor/skills/pm-manager`):
-
-```powershell
-.\scripts\powershell\install-cursor.ps1 -TargetProject "D:\path\to\your-app"
-```
-
-**Claude Code** (installs `/pm-*` command files):
-
-```powershell
-.\scripts\powershell\install-claude.ps1 -TargetProject "D:\path\to\your-app"
-```
-
-**Scaffold only** (create `.pm/` without an agent):
+Verify:
 
 ```bash
-python scripts/python/create_pm_scaffold.py /path/to/your-app
+pm version
+# or
+pm-manager version
 ```
 
-### 3. Initialize governance
+Upgrade later:
 
-Open your coding agent in the **target project** (not only this pack repo) and run:
+```bash
+uv tool upgrade pm-manager-cli
+# or reinstall from git
+uv tool install pm-manager-cli --force --from git+https://github.com/wei63w/pm-manager.git
+```
+
+### 2. Bootstrap a project
+
+In your **application** repository (not required to keep this pack checked out):
+
+```bash
+cd /path/to/your-app
+
+# Create .pm/ + install Cursor & Claude adapters (default)
+pm init
+
+# Cursor only
+pm init --agent cursor
+
+# Claude Code only
+pm init --agent claude
+
+# Scaffold .pm/ only (no agent files)
+pm init --scaffold-only
+```
+
+Refresh adapters without re-scaffolding:
+
+```bash
+pm install --agent all
+pm check
+```
+
+> Windows / macOS / Linux all use the same commands. Legacy PowerShell helpers under `scripts/powershell/` still work, but **`pm init` is preferred**.
+
+### 3. Initialize governance in your agent
+
+Open Cursor / Claude Code in the project and run:
 
 ```text
 /pm-init
@@ -81,7 +112,7 @@ Open your coding agent in the **target project** (not only this pack repo) and r
 - Detects **new vs existing** projects  
 - Discovers Spec Kit `.specify/memory/constitution.md` (and other charter candidates) when present  
 - For empty projects, accepts a one-line intent to generate an outline  
-- Creates local `.pm/` and appends `.pm/` to `.git/info/exclude` (not shared `.gitignore`)
+- Complements the filesystem scaffold from `pm init` (agent fills charter/overview)
 
 ### 4. Check today’s Top3
 
@@ -108,6 +139,19 @@ Conversation paste is a first-class evidence source (no need to save a file firs
 ```
 
 Runs gated full governance with a **noise-filtered** summary (blocking + high by default). Use `--verbose` for the long list.
+
+## CLI Reference
+
+| Command | Description |
+|---------|-------------|
+| `pm version` | Print CLI version |
+| `pm init [path]` | Create `.pm/` + install agent adapters |
+| `pm init --agent cursor\|claude\|all\|none` | Choose which adapters to install |
+| `pm init --scaffold-only` | Only create `.pm/` |
+| `pm install --agent …` | Refresh adapters without scaffolding |
+| `pm check [path]` | Show whether `.pm/` and adapters exist |
+
+`pm-manager` is an alias of `pm`.
 
 ## Supported AI Coding Agents
 
@@ -188,12 +232,14 @@ They can run in the **same repo**. PM Manager will read Spec Kit artifacts when 
 
 ```text
 pm-manager/
+  pyproject.toml           # uv/pip package (pm / pm-manager entrypoints)
+  src/pm_manager_cli/      # Cross-platform CLI
   SKILL.md                 # Router skill
   AGENTS.md                # Agent-oriented notes
   templates/commands/      # Slash/skill command prompts
   templates/pm/            # Files copied into target .pm/
-  scripts/python/          # create_pm_scaffold.py
-  scripts/powershell/      # scaffold + install helpers
+  scripts/python/          # Thin wrappers (prefer `pm init`)
+  scripts/powershell/      # Legacy Windows helpers
   adapters/cursor/         # Cursor skill variants
   adapters/claude-code/    # Claude Code command files
   memory/ROUTING.md        # NL → command map
@@ -205,9 +251,10 @@ pm-manager/
 ## Prerequisites
 
 - **Windows / macOS / Linux**
+- [uv](https://docs.astral.sh/uv/) (recommended) for `uv tool install`
+- **Python 3.11+**
+- **Git** (so exclude rules can be written)
 - An AI coding agent that supports skills or project slash commands (Cursor or Claude Code recommended)
-- **Python 3.10+** (for the scaffold script)
-- **Git** (so `/pm-init` can write `.git/info/exclude`)
 - Optional: [Spec Kit](https://github.com/github/spec-kit) if you already use constitution/specs
 
 ## Support

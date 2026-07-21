@@ -22,5 +22,11 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Generated local governance (never publish from sample runs)
-.pm/
+# Build / tool
+dist/
+build/
+*.egg-info/
+.eggs/
+.pytest_cache/
+.ruff_cache/
+uv.lock
