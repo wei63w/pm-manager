@@ -1,0 +1,78 @@
+version: "2.0"
+project:
+  name: ""
+  type: java-spring-boot
+  root: "."
+  lifecycle: existing
+stack:
+  build: none
+  runtime: ""
+  database: ""
+  registry: none
+  deploy: none
+process:
+  mode: agile
+  iteration: "2w"
+charter:
+  status: absent
+  source: none
+  needs_recompare: false
+  discovered_from: []
+outline:
+  status: absent
+  source: none
+charter_candidates:
+  - path: ".specify/memory/constitution.md"
+    kind: speckit-constitution
+  - path: ".specify/specs/**/spec.md"
+    kind: speckit-spec
+  - path: "CONSTITUTION.md"
+    kind: constitution
+  - path: "docs/prd.md"
+    kind: prd
+  - path: "docs/requirements.md"
+    kind: requirements
+  - path: "docs/nfr.md"
+    kind: nfr
+  - path: "README.md"
+    kind: readme-fallback
+modules:
+  bugs: true
+  architecture: true
+  engineering: true
+  environments: true
+  integration: true
+  testing: true
+  release: true
+  database: true
+  operations: true
+  cost: true
+sources:
+  logs:
+    - path: "logs/"
+    - path: "*/logs/*.log"
+  stacks:
+    - path: ".pm/inbox/stacks/"
+  slow_query:
+    - path: "logs/mysql-slow.log"
+  cicd:
+    - path: ".github/workflows/"
+    - path: ".gitlab-ci.yml"
+    - path: "Jenkinsfile"
+  dockerfile:
+    - path: "**/Dockerfile*"
+    - path: "docker-compose*.yml"
+  sql:
+    - path: "db/migration/"
+    - path: "**/resources/mapper/**/*.xml"
+rules:
+  require_confirm_before_write: true
+  desensitize_evidence: true
+  incremental_merge: true
+  charter_compare: true
+  default_noise_filter: high
+  top_n: 3
+scan:
+  exclude_dirs: [target, node_modules, .git, dist, build, .pm]
+  max_file_size_kb: 512
+  incremental_by: mtime_hash

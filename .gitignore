@@ -1,0 +1,26 @@
+# Design baselines (kept outside this package / not published)
+pm-manager-v*.md
+**/pm-manager-v1.md
+**/pm-manager-v2.md
+*.canvas.tsx
+docs/superpowers/
+
+# Local / editor
+.cursor/
+.claude/
+.idea/
+.vscode/
+*.path
+
+# Python / OS
+__pycache__/
+*.py[cod]
+.Python
+.env
+.venv/
+venv/
+.DS_Store
+Thumbs.db
+
+# Generated local governance (never publish from sample runs)
+.pm/

@@ -1,0 +1,12 @@
+workspace:
+  project_root: "."
+extra_scan_roots: []
+paths:
+  java_home: ""
+  maven_settings: ""
+  docker_compose: ""
+credentials_ref:
+  mysql: ""
+  nacos: ""
+  registry: ""
+  mysql_slow_log: ""
