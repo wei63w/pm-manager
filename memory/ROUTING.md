@@ -1,15 +1,15 @@
-# 命令路由
+# Command routing
 
-| 用户说法 | 命令 |
-|---------|------|
-| 初始化 / 开始管这个项目 | `/pm-init` |
-| 现在怎么样 / 今天做什么 | `/pm-status` |
-| 下一步做什么 | `/pm-next` |
-| 这个做完了 / 关闭 TODO-xxx | `/pm-done` |
-| 帮我看这个报错 + 粘贴 | `/pm-fix` |
-| 全面检查 / 体检 | `/pm-all` |
-| 生成大纲 / 空项目规划 | `/pm-outline` |
-| 章程 / constitution / 导入需求 | `/pm-charter` |
-| 导出治理摘要 | `/pm-export` |
+| User phrase | Command |
+|-------------|---------|
+| initialize / start governing this project | `/pm-init` |
+| how are we doing / what should I do today | `/pm-status` |
+| what's next | `/pm-next` |
+| this is done / close TODO-xxx | `/pm-done` |
+| help me with this error + paste | `/pm-fix` |
+| full check / health scan | `/pm-all` |
+| generate outline / empty-project planning | `/pm-outline` |
+| charter / constitution / import requirements | `/pm-charter` |
+| export governance summary | `/pm-export` |
 
-日常只需记住：`init` → `status` → `done`；出事用 `fix`；发版前 `all`。
+Daily essentials: `init` → `status` → `done`; use `fix` for incidents; run `all` before release.

@@ -1,12 +1,12 @@
 ---
 name: pm-done
 description: >-
-  Close a todo (TODO-xxx), sync completed.md, refresh overview Top3. Trigger on /pm-done and related Chinese/English phrases for this command.
+  Close a todo (TODO-xxx), sync completed.md, refresh overview Top3. Trigger on /pm-done and related English phrases for this command.
 ---
 
 # /pm-done
 
-Follow the workflow below exactly. Scaffold helper: `scripts/python/create_pm_scaffold.py`.
+Follow the workflow below exactly. Scaffold helper: `pm init` or `scripts/python/create_pm_scaffold.py`.
 
 When resolving pack files, prefer the `pm-manager` directory that contains this skill's sibling `templates/` (or the project skill pack root).
 
@@ -38,7 +38,7 @@ Follow this order when the command mutates `.pm/` state:
 3. Desensitize evidence → `.pm/evidence/scans/{command}-{timestamp}.json` (secrets → `***`).
 4. Optional charter compare when `charter.status != absent` (attach `confidence`).
 5. Incremental merge into module `findings.md` / `todo.md`; sync authoritative `state/todo.md`.
-6. Refresh `state/overview.md` (include **今日 Top3**, max 3, blocking+high by default).
+6. Refresh `state/overview.md` (include **Today's Top3**, max 3, blocking+high by default).
 7. Output risk summary + recommended next step (≤20 lines). Never auto-write source/SQL/cloud without confirmation.
 
 Design baseline: repo root `pm-manager-v2.md` (or packaged copy under `memory/`).

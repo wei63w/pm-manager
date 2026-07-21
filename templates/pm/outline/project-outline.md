@@ -1,9 +1,9 @@
-# 项目大纲
+# Project outline
 
-## 背景与目标
+## Background & goals
 
-## 模块划分
+## Module breakdown
 
-## 技术栈建议
+## Suggested tech stack
 
-## 迭代节奏
+## Iteration cadence

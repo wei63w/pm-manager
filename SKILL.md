@@ -4,7 +4,8 @@ description: >-
   Project governance workbench (/pm-*). Use for /pm-init, /pm-status, /pm-next,
   /pm-done, /pm-fix, /pm-all, /pm-outline, /pm-charter, /pm-export, project
   health Top3, pasted logs/stacks, Spec Kit constitution discovery, and local
-  .pm governance. Triggers on 项目管理、治理、今日做什么、帮我看报错.
+  .pm governance. Triggers on project management, governance, what should I do
+  today, help me with this error.
 ---
 
 # PM Manager
@@ -14,13 +15,13 @@ Spec-kit-inspired command pack for **local `.pm/` project governance**.
 ## When to use
 
 - User says `/pm-init`, `/pm-status`, `/pm-all`, `/pm-fix`, `/pm-done`, `/pm-next`, `/pm-outline`, `/pm-charter`, `/pm-export`
-- Natural language: 初始化治理、今天做什么、全面检查、帮我看这个报错、这个待办做完了
+- Natural language: initialize governance, what should I do today, full health check, help me with this error, this todo is done
 
 ## How to execute
 
-1. Resolve command name from user message (see routing table in `../pm-manager-v2.md` or `memory/ROUTING.md`).
+1. Resolve command name from user message (see routing table in `memory/ROUTING.md`).
 2. Read the matching file under `templates/commands/<name>.md` and **follow it exactly**.
-3. For `/pm-init`, run `scripts/python/create_pm_scaffold.py <project-root>` (or PowerShell twin) before filling config.
+3. For `/pm-init`, run `pm init <project-root>` (or `scripts/python/create_pm_scaffold.py`) before filling config.
 4. Keep daily UX simple: prefer status Top3; do not dump medium/low unless `--verbose`.
 5. Never commit `.pm/`; never print secrets.
 

@@ -1,6 +1,6 @@
 # Definition of Done
 
-- [ ] 代码已评审
-- [ ] 关键测试通过
-- [ ] 文档/配置已更新
-- [ ] 无未处理阻断项
+- [ ] Code reviewed
+- [ ] Critical tests passing
+- [ ] Docs/config updated
+- [ ] No open blocking items

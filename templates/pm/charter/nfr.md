@@ -1,14 +1,14 @@
-# 非功能需求
+# Non-functional requirements
 
-## 性能
+## Performance
 
-- 目标 QPS：
-- P99 延迟：
+- Target QPS:
+- P99 latency:
 
-## 可用性
+## Availability
 
-- SLA：
+- SLA:
 
-## 安全与合规
+## Security & compliance
 
-- 
+-

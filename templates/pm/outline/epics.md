@@ -2,5 +2,5 @@
 
 ## EPIC-001
 
-- 优先级：
-- 描述：
+- Priority:
+- Description:

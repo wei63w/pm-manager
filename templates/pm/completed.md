@@ -1,3 +1,3 @@
-# 已完成
+# Completed
 
-（暂无）
+(none yet)

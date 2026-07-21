@@ -85,7 +85,7 @@ def scaffold(project_root: Path) -> Path:
     overview = arch / "overview.md"
     if not overview.exists():
         overview.write_text(
-            "# Architecture overview\n\n(待 /pm-arch 或 /pm-discover 生成)\n",
+            "# Architecture overview\n\n(Generate with /pm-arch or /pm-discover)\n",
             encoding="utf-8",
         )
     for stub in ("system-context.mmd", "service-dependencies.mmd"):

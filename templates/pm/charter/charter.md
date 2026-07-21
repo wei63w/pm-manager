@@ -1,21 +1,21 @@
-# 项目章程
+# Project charter
 
-## 目标
+## Goals
 
 [PROJECT_GOAL]
 
-## 范围（做什么）
+## In scope
 
 - [IN_SCOPE_1]
 
-## 非目标（不做什么）
+## Out of scope
 
 - [OUT_OF_SCOPE_1]
 
-## 干系人
+## Stakeholders
 
 - [STAKEHOLDER]
 
-## 成功标准
+## Success criteria
 
 - [SUCCESS_1]

@@ -30,7 +30,7 @@ Follow this order when the command mutates `.pm/` state:
 3. Desensitize evidence → `.pm/evidence/scans/{command}-{timestamp}.json` (secrets → `***`).
 4. Optional charter compare when `charter.status != absent` (attach `confidence`).
 5. Incremental merge into module `findings.md` / `todo.md`; sync authoritative `state/todo.md`.
-6. Refresh `state/overview.md` (include **今日 Top3**, max 3, blocking+high by default).
+6. Refresh `state/overview.md` (include **Today's Top3**, max 3, blocking+high by default).
 7. Output risk summary + recommended next step (≤20 lines). Never auto-write source/SQL/cloud without confirmation.
 
 Design baseline: repo root `pm-manager-v2.md` (or packaged copy under `memory/`).

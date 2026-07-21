@@ -23,7 +23,7 @@ Flags: `--full` (deep scan first), `--verbose` (show medium/low), `--focus=itera
 1. Require `.pm/config/project.yaml` else recommend `/pm-init`.
 2. If `--full`, run discover workflow first (read-only modules → merge).
 3. Aggregate open findings counts by severity; list blocking items.
-4. Build **今日 Top3** from `state/todo.md` (open/in_progress), order: blocking>high, P0>P1, iteration-related first. Suppress resolved/wontfix/done and low-confidence charter findings.
+4. Build **Today's Top3** from `state/todo.md` (open/in_progress), order: blocking>high, P0>P1, iteration-related first. Suppress resolved/wontfix/done and low-confidence charter findings.
 5. Show charter/outline status and `needs_recompare`.
 6. Light iteration progress if `process.iteration` + milestones/REQ exist.
 7. Default hide medium/low unless `--verbose` (show counts only).
@@ -44,7 +44,7 @@ Follow this order when the command mutates `.pm/` state:
 3. Desensitize evidence → `.pm/evidence/scans/{command}-{timestamp}.json` (secrets → `***`).
 4. Optional charter compare when `charter.status != absent` (attach `confidence`).
 5. Incremental merge into module `findings.md` / `todo.md`; sync authoritative `state/todo.md`.
-6. Refresh `state/overview.md` (include **今日 Top3**, max 3, blocking+high by default).
+6. Refresh `state/overview.md` (include **Today's Top3**, max 3, blocking+high by default).
 7. Output risk summary + recommended next step (≤20 lines). Never auto-write source/SQL/cloud without confirmation.
 
 Design baseline: repo root `pm-manager-v2.md` (or packaged copy under `memory/`).

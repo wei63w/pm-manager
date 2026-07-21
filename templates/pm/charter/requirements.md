@@ -1,7 +1,7 @@
-# 需求条目
+# Requirements
 
-## REQ-001 [标题]
+## REQ-001 [Title]
 
-- **优先级**：P0 | P1 | P2
-- **状态**：planned | in_progress | done | cut
-- **描述**：
+- **Priority**: P0 | P1 | P2
+- **Status**: planned | in_progress | done | cut
+- **Description**:

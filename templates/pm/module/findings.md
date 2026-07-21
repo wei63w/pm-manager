@@ -1,3 +1,3 @@
 # Findings
 
-（暂无）
+(none yet)

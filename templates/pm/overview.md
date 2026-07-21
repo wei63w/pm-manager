@@ -1,28 +1,28 @@
-# 项目治理总览
+# Project governance overview
 
-> 最后更新：{ISO8601} | 触发命令：{command}
-> 生命周期：{new|existing} | 开发模式：{process.mode} | 章程：{absent|draft|approved} | 大纲：{absent|draft|approved}
+> Last updated: {ISO8601} | Trigger: {command}
+> Lifecycle: {new|existing} | Process: {process.mode} | Charter: {absent|draft|approved} | Outline: {absent|draft|approved}
 
-## 健康度
+## Health
 
-| 模块 | 状态 | 阻断 | 高 | 中 | 低 | 上次扫描 |
-|------|------|------|----|----|----|---------|
-| — | 未扫描 | 0 | 0 | 0 | 0 | — |
+| Module | Status | Blocking | High | Medium | Low | Last scan |
+|--------|--------|----------|------|--------|-----|-----------|
+| — | not scanned | 0 | 0 | 0 | 0 | — |
 
-## 扫描模式
+## Scan mode
 
-- 本次：技术扫描 | 技术扫描 + 章程对照
-- 章程重对照：否
+- This run: technical scan | technical scan + charter compare
+- Charter re-compare needed: no
 
-## 今日 Top3
+## Today's Top3
 
-1. （暂无待办 — 运行 `/pm-all` 或 `/pm-fix`）
+1. (no open todos — run `/pm-all` or `/pm-fix`)
 
-## 阻断项（必须处理）
+## Blocking items
 
-- 无
+- none
 
-## 推荐下一步
+## Recommended next steps
 
 1. `/pm-status`
-2. 发版前 `/pm-all`；有报错粘贴时 `/pm-fix`
+2. Before release: `/pm-all`; if you have an error paste: `/pm-fix`

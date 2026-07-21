@@ -1,5 +1,5 @@
-# 里程碑
+# Milestones
 
 ## M1
 
-- [ ] 验收点
+- [ ] Acceptance criterion

@@ -1,3 +1,3 @@
 # Checklist
 
-- [ ] 初始检查项
+- [ ] Initial check item

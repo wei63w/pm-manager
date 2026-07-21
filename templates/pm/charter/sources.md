@@ -1,3 +1,3 @@
-# 章程来源
+# Charter sources
 
-（尚未发现外部源）
+(no external sources discovered yet)
