@@ -1,16 +1,11 @@
+﻿---
+description: Analyze pasted logs/stacks/slow SQL from chat (or --path) into bugs findings and todos.
+handoffs:
+  - label: Status
+    agent: pm.status
+    prompt: Show Top3 after incident intake
+    send: true
 ---
-name: pm-fix
-description: >-
-  Analyze pasted logs/stacks/slow SQL from chat (or --path) into bugs findings and todos. Trigger on /pm-fix and related English phrases for this command.
----
-
-# /pm-fix
-
-Follow the workflow below exactly. Scaffold helper: `pm init` or `scripts/python/create_pm_scaffold.py`.
-
-When resolving pack files, prefer the `pm-manager` directory that contains this skill's sibling `templates/` (or the project skill pack root).
-
-
 
 ## User Input
 
@@ -42,5 +37,6 @@ Follow this order when the command mutates `.pm/` state:
 6. Refresh `state/overview.md` (include **Today's Top3**, max 3, blocking+high by default).
 7. Output risk summary + recommended next step (≤20 lines). Never auto-write source/SQL/cloud without confirmation.
 
-Design baseline: repo root `pm-manager-v2.md` (or packaged copy under `memory/`).
+9. **Closing (required):** end the user-facing reply with Summary + Open these links per `templates/commands/_closing.md` (dashboard and/or architecture overviews). Ask the user to open them.
 
+Design baseline: repo root `pm-manager-v2.md` (or packaged copy under `memory/`).

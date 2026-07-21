@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Optional
 
@@ -9,6 +10,8 @@ from rich.table import Table
 
 from pm_manager_cli import __version__
 from pm_manager_cli.agents import install_agents
+from pm_manager_cli.architecture import write_architecture
+from pm_manager_cli.dashboard import write_dashboard
 from pm_manager_cli.scaffold import ensure_git_exclude, scaffold
 
 app = typer.Typer(
@@ -22,6 +25,23 @@ console = Console()
 
 def _resolve_root(path: Optional[Path]) -> Path:
     return (path or Path.cwd()).resolve()
+
+
+def _print_open_links(title: str, items: list[tuple[str, Path]]) -> None:
+    """Print a short summary footer so users know which overviews to open."""
+    console.print()
+    console.print(f"[bold]{title}[/bold]")
+    console.print(
+        "[dim]Suggested: open these overviews (no need to browse each module).[/dim]"
+    )
+    for label, p in items:
+        resolved = p.resolve()
+        console.print(f"  - [cyan]{label}[/cyan]")
+        console.print(f"    {resolved}")
+        try:
+            console.print(f"    {resolved.as_uri()}")
+        except ValueError:
+            pass
 
 
 @app.callback()
@@ -115,6 +135,8 @@ def check_cmd(
     checks = {
         ".pm/": (root / ".pm").is_dir(),
         ".pm/config/project.yaml": (root / ".pm" / "config" / "project.yaml").is_file(),
+        ".pm/dashboard/index.html": (root / ".pm" / "dashboard" / "index.html").is_file(),
+        ".pm/dashboard/overview.md": (root / ".pm" / "dashboard" / "overview.md").is_file(),
         "Cursor skill": (root / ".cursor" / "skills" / "pm-manager" / "SKILL.md").is_file(),
         "Claude commands": any(
             (root / ".claude" / "commands").glob("pm-*.md")
@@ -132,6 +154,71 @@ def check_cmd(
     for item, ok in checks.items():
         table.add_row(item, "[green]ok[/green]" if ok else "[yellow]missing[/yellow]")
     console.print(table)
+
+
+@app.command("dashboard")
+def dashboard_cmd(
+    path: Optional[Path] = typer.Argument(
+        None, help="Target project root (default: current directory)"
+    ),
+) -> None:
+    """Rebuild .pm/dashboard from module findings and todos."""
+    root = _resolve_root(path)
+    out = write_dashboard(root)
+    # Quick stats for the terminal summary
+    stats_path = out / "stats.json"
+    summary = ""
+    if stats_path.is_file():
+        try:
+            data = json.loads(stats_path.read_text(encoding="utf-8"))
+            summary = (
+                f"health={data.get('health_label', '?')} "
+                f"{data.get('health_score', '?')}/100 | "
+                f"open findings={data.get('open_findings', 0)} | "
+                f"hot={data.get('hot_count', 0)} | "
+                f"open todos={data.get('open_todos', 0)}"
+            )
+        except (OSError, json.JSONDecodeError, TypeError):
+            summary = ""
+
+    console.print(f"[green]OK[/green] Dashboard written -> {out}")
+    if summary:
+        console.print(f"  Summary: {summary}")
+    _print_open_links(
+        "Open these overviews",
+        [
+            ("Governance dashboard (browser)", out / "index.html"),
+            ("Governance dashboard (IDE)", out / "overview.md"),
+        ],
+    )
+
+
+@app.command("arch")
+def arch_cmd(
+    path: Optional[Path] = typer.Argument(
+        None, help="Target project root (default: current directory)"
+    ),
+) -> None:
+    """Scan project and generate Mermaid architecture / flow diagrams."""
+    root = _resolve_root(path)
+    out, model = write_architecture(root)
+    console.print(f"[green]OK[/green] Architecture diagrams -> {out}")
+    console.print(
+        f"  Summary: stack={', '.join(model.stacks) or 'unknown'} | "
+        f"modules={len(model.modules)} | "
+        f"controllers={len(model.controllers)} | "
+        f"externals={len(model.externals)}"
+    )
+    if model.modules:
+        console.print(f"  Modules: {', '.join(model.modules[:8])}")
+    _print_open_links(
+        "Open these overviews",
+        [
+            ("Architecture overview (Mermaid)", out / "overview.md"),
+            ("System context", out / "system-context.mmd"),
+            ("Request flowchart", out / "request-flow.mmd"),
+        ],
+    )
 
 
 if __name__ == "__main__":

@@ -11,5 +11,6 @@
 | generate outline / empty-project planning | `/pm-outline` |
 | charter / constitution / import requirements | `/pm-charter` |
 | export governance summary | `/pm-export` |
+| architecture diagram / flow chart / 架构图 | `/pm-arch` |
 
-Daily essentials: `init` → `status` → `done`; use `fix` for incidents; run `all` before release.
+Daily essentials: `init` → `status` → `done`; use `fix` for incidents; run `all` before release. Architecture diagrams: `/pm-arch` or `pm arch`.

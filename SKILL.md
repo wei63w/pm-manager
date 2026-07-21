@@ -2,7 +2,7 @@
 name: pm-manager
 description: >-
   Project governance workbench (/pm-*). Use for /pm-init, /pm-status, /pm-next,
-  /pm-done, /pm-fix, /pm-all, /pm-outline, /pm-charter, /pm-export, project
+  /pm-done, /pm-fix, /pm-all, /pm-outline, /pm-charter, /pm-export, /pm-arch, project
   health Top3, pasted logs/stacks, Spec Kit constitution discovery, and local
   .pm governance. Triggers on project management, governance, what should I do
   today, help me with this error.
@@ -14,8 +14,8 @@ Spec-kit-inspired command pack for **local `.pm/` project governance**.
 
 ## When to use
 
-- User says `/pm-init`, `/pm-status`, `/pm-all`, `/pm-fix`, `/pm-done`, `/pm-next`, `/pm-outline`, `/pm-charter`, `/pm-export`
-- Natural language: initialize governance, what should I do today, full health check, help me with this error, this todo is done
+- User says `/pm-init`, `/pm-status`, `/pm-all`, `/pm-fix`, `/pm-done`, `/pm-next`, `/pm-outline`, `/pm-charter`, `/pm-export`, `/pm-arch`
+- Natural language: initialize governance, what should I do today, full health check, help me with this error, this todo is done, generate architecture diagram
 
 ## How to execute
 
@@ -24,6 +24,7 @@ Spec-kit-inspired command pack for **local `.pm/` project governance**.
 3. For `/pm-init`, run `pm init <project-root>` (or `scripts/python/create_pm_scaffold.py`) before filling config.
 4. Keep daily UX simple: prefer status Top3; do not dump medium/low unless `--verbose`.
 5. Never commit `.pm/`; never print secrets.
+6. **Always end with a short Summary + Open these links** (see `templates/commands/_closing.md`). Tell the user to open the overview — do not assume they know `.pm/dashboard/` or `.pm/architecture/` exists.
 
 ## Command map
 
@@ -38,6 +39,7 @@ Spec-kit-inspired command pack for **local `.pm/` project governance**.
 | `/pm-outline` | `templates/commands/outline.md` |
 | `/pm-charter` | `templates/commands/charter.md` |
 | `/pm-export` | `templates/commands/export.md` |
+| `/pm-arch` | `templates/commands/arch.md` |
 | `/pm-discover` | `templates/commands/discover.md` |
 
 ## Design baseline

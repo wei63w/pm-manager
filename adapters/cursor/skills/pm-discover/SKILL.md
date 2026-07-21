@@ -1,16 +1,11 @@
+﻿---
+description: Deep-scan all enabled governance modules and refresh state (internal; used by pm-all / status --full).
+handoffs:
+  - label: Status
+    agent: pm.status
+    prompt: Show status after discover
+    send: true
 ---
-name: pm-discover
-description: >-
-  Deep-scan all enabled governance modules and refresh state (internal; used by pm-all / status --full). Trigger on /pm-discover and related English phrases for this command.
----
-
-# /pm-discover
-
-Follow the workflow below exactly. Scaffold helper: `pm init` or `scripts/python/create_pm_scaffold.py`.
-
-When resolving pack files, prefer the `pm-manager` directory that contains this skill's sibling `templates/` (or the project skill pack root).
-
-
 
 ## User Input
 
@@ -21,9 +16,12 @@ $ARGUMENTS
 ## Outline
 
 1. Require init. For each enabled module, perform on-demand technical scan + optional charter compare.
-2. Incremental merge; suppress duplicate evidence hashes.
-3. Refresh state overview/todo.
-4. Keep chat brief unless `--verbose`.
+2. For architecture: run **`pm arch`** (or `/pm-arch`) so `.pm/architecture/` gets real Mermaid diagrams (system context, dependencies, request/deploy flows) — not placeholder stubs.
+3. Incremental merge; suppress duplicate evidence hashes.
+4. Refresh state overview/todo.
+5. Rebuild `.pm/dashboard/` with `pm dashboard` (aggregate findings + todos).
+6. Keep chat brief unless `--verbose`.
+7. **Required closing**: follow `templates/commands/_closing.md` — Summary + Open links for `.pm/dashboard/index.html`, `.pm/dashboard/overview.md`, and `.pm/architecture/overview.md` (if arch ran). Ask the user to open them.
 
 
 ## Shared Workflow (all /pm-* commands)
@@ -38,5 +36,6 @@ Follow this order when the command mutates `.pm/` state:
 6. Refresh `state/overview.md` (include **Today's Top3**, max 3, blocking+high by default).
 7. Output risk summary + recommended next step (≤20 lines). Never auto-write source/SQL/cloud without confirmation.
 
-Design baseline: repo root `pm-manager-v2.md` (or packaged copy under `memory/`).
+9. **Closing (required):** end the user-facing reply with Summary + Open these links per `templates/commands/_closing.md` (dashboard and/or architecture overviews). Ask the user to open them.
 
+Design baseline: repo root `pm-manager-v2.md` (or packaged copy under `memory/`).

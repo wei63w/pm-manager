@@ -85,14 +85,36 @@ def scaffold(project_root: Path) -> Path:
     overview = arch / "overview.md"
     if not overview.exists():
         overview.write_text(
-            "# Architecture overview\n\n(Generate with /pm-arch or /pm-discover)\n",
+            "# Architecture overview\n\n_Run `pm arch` or `/pm-arch` to generate Mermaid diagrams from this project._\n",
             encoding="utf-8",
         )
-    for stub in ("system-context.mmd", "service-dependencies.mmd"):
+    for stub in (
+        "system-context.mmd",
+        "service-dependencies.mmd",
+        "request-flow.mmd",
+        "deploy-flow.mmd",
+    ):
         p = arch / stub
         if not p.exists():
-            p.write_text("flowchart LR\n  A[System] --> B[Dependency]\n", encoding="utf-8")
+            p.write_text(
+                f"flowchart LR\n  %% Placeholder — regenerate with: pm arch\n  A[Project] --> B[Dependency]\n",
+                encoding="utf-8",
+            )
 
     (pm / "evidence" / "scans" / ".gitkeep").write_text("", encoding="utf-8")
+    (pm / "dashboard").mkdir(parents=True, exist_ok=True)
     ensure_git_exclude(project_root)
+
+    # Initial empty dashboard aggregate
+    try:
+        from pm_manager_cli.dashboard import write_dashboard
+
+        write_dashboard(project_root)
+    except Exception:
+        stub = pm / "dashboard" / "overview.md"
+        if not stub.exists():
+            stub.write_text(
+                "# Governance dashboard\n\n_Run `pm dashboard` or `/pm-all` to populate._\n",
+                encoding="utf-8",
+            )
     return pm

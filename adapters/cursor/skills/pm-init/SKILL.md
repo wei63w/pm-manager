@@ -1,16 +1,13 @@
+﻿---
+description: Initialize local .pm governance workbench; detect new vs existing project; discover Spec Kit constitution; optional outline from intent.
+handoffs:
+  - label: Project status
+    agent: pm.status
+    prompt: Show project governance status and today's Top3
+  - label: Full scan
+    agent: pm.all
+    prompt: Run full governance scan
 ---
-name: pm-init
-description: >-
-  Initialize local .pm governance workbench; detect new vs existing project; discover Spec Kit constitution; optional outline from intent. Trigger on /pm-init and related English phrases for this command.
----
-
-# /pm-init
-
-Follow the workflow below exactly. Scaffold helper: `pm init` or `scripts/python/create_pm_scaffold.py`.
-
-When resolving pack files, prefer the `pm-manager` directory that contains this skill's sibling `templates/` (or the project skill pack root).
-
-
 
 ## User Input
 
@@ -76,5 +73,6 @@ Follow this order when the command mutates `.pm/` state:
 6. Refresh `state/overview.md` (include **Today's Top3**, max 3, blocking+high by default).
 7. Output risk summary + recommended next step (≤20 lines). Never auto-write source/SQL/cloud without confirmation.
 
-Design baseline: repo root `pm-manager-v2.md` (or packaged copy under `memory/`).
+9. **Closing (required):** end the user-facing reply with Summary + Open these links per `templates/commands/_closing.md` (dashboard and/or architecture overviews). Ask the user to open them.
 
+Design baseline: repo root `pm-manager-v2.md` (or packaged copy under `memory/`).

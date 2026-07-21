@@ -1,4 +1,4 @@
----
+﻿---
 description: Analyze pasted logs/stacks/slow SQL from chat (or --path) into bugs findings and todos.
 handoffs:
   - label: Status
@@ -36,5 +36,7 @@ Follow this order when the command mutates `.pm/` state:
 5. Incremental merge into module `findings.md` / `todo.md`; sync authoritative `state/todo.md`.
 6. Refresh `state/overview.md` (include **Today's Top3**, max 3, blocking+high by default).
 7. Output risk summary + recommended next step (≤20 lines). Never auto-write source/SQL/cloud without confirmation.
+
+9. **Closing (required):** end the user-facing reply with Summary + Open these links per `templates/commands/_closing.md` (dashboard and/or architecture overviews). Ask the user to open them.
 
 Design baseline: repo root `pm-manager-v2.md` (or packaged copy under `memory/`).

@@ -138,6 +138,8 @@ Conversation paste is a first-class evidence source (no need to save a file firs
 
 Runs gated full governance with a **noise-filtered** summary (blocking + high by default). Use `--verbose` for the long list.
 
+After the scan, open **`.pm/dashboard/index.html`** in a browser for the visual dashboard (KPI, charts, module risk). Or read **`overview.md`** in the IDE. Rebuild anytime with `pm dashboard`.
+
 ## CLI Reference
 
 
@@ -149,6 +151,8 @@ Runs gated full governance with a **noise-filtered** summary (blocking + high by
 | `pm init --scaffold-only`                | Only create `.pm/`                     |
 | `pm install --agent …`                   | Refresh adapters without scaffolding   |
 | `pm check [path]`                        | Show whether `.pm/` and adapters exist |
+| `pm dashboard [path]`                    | Rebuild `.pm/dashboard/` from module findings/todos |
+| `pm arch [path]`                         | Scan project → Mermaid diagrams under `.pm/architecture/` |
 
 
 `pm-manager` is an alias of `pm`.
@@ -179,7 +183,8 @@ Natural-language routing (when slash commands are unavailable) is documented in 
 | `/pm-next`   | `pm-next`   | Claim the next todo (`in_progress`)                       |
 | `/pm-done`   | `pm-done`   | Close `TODO-xxx`, refresh overview                        |
 | `/pm-fix`    | `pm-fix`    | Parse pasted logs/stacks into bugs + todos                |
-| `/pm-all`    | `pm-all`    | Full gated scan with quiet summary                        |
+| `/pm-all`    | `pm-all`    | Full gated scan; rebuilds `.pm/dashboard/` aggregate      |
+| `/pm-arch`   | `pm-arch`   | Generate architecture + flow Mermaid diagrams from repo   |
 
 
 
@@ -238,24 +243,35 @@ They can run in the **same repo**. PM Manager will read Spec Kit artifacts when 
 | Morning / “what now?”    | `/pm-status` → `/pm-next` |
 | Finished a todo          | `/pm-done TODO-xxx`       |
 | Production / local error | paste + `/pm-fix`         |
-| Before release           | `/pm-all`                 |
+| Before release           | `/pm-all` → `.pm/dashboard/` |
+| Need architecture diagrams | `/pm-arch` or `pm arch`     |
 | Hand-off / laptop switch | `/pm-export`              |
 
 
 ```text
 /pm-init → /pm-status → /pm-done
          ↘ /pm-fix (incidents)
-         ↘ /pm-all  (release gate)
+         ↘ /pm-all  → .pm/dashboard/  (release gate + overview)
 ```
 
+### Target `.pm/dashboard/` (after `/pm-all` or `pm dashboard`)
 
+```text
+.pm/dashboard/
+  index.html    # visual dashboard — open in a browser
+  overview.md   # IDE tables: KPI, bars, module risk ranking, hot/todos
+  findings.md   # aggregated open findings
+  todos.md      # aggregated open todos
+  stats.json    # counts + health_score + module_risk
+  README.md     # same as overview.md (entry alias)
+```
 
 ## Repository Layout
 
 ```text
 pm-manager/
   pyproject.toml           # uv/pip package (pm / pm-manager entrypoints)
-  src/pm_manager_cli/      # Cross-platform CLI
+  src/pm_manager_cli/      # Cross-platform CLI (incl. pm dashboard)
   SKILL.md                 # Router skill
   AGENTS.md                # Agent-oriented notes
   templates/commands/      # Slash/skill command prompts

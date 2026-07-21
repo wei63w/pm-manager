@@ -6,9 +6,9 @@ description: >-
 
 # /pm-export
 
-Follow the workflow below exactly. Scaffold helper: `pm init` or `scripts/python/create_pm_scaffold.py`.
+Follow the workflow below exactly. Scaffold helper: \pm init\ or \scripts/python/create_pm_scaffold.py\.
 
-When resolving pack files, prefer the `pm-manager` directory that contains this skill's sibling `templates/` (or the project skill pack root).
+When resolving pack files, prefer the \pm-manager\ directory that contains this skill's sibling \	emplates/\ (or the project skill pack root).
 
 
 
