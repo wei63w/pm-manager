@@ -1,11 +1,10 @@
 ---
 name: pm-manager
-description: >-
-  Project governance workbench (/pm-*). Use for /pm-init, /pm-status, /pm-next,
-  /pm-done, /pm-fix, /pm-all, /pm-outline, /pm-charter, /pm-export, /pm-arch, project
-  health Top3, pasted logs/stacks, Spec Kit constitution discovery, and local
-  .pm governance. Triggers on project management, governance, what should I do
-  today, help me with this error.
+description: "Project governance workbench (/pm-*). Use for /pm-init, /pm-status, /pm-next, /pm-done, /pm-fix, /pm-all, /pm-outline, /pm-charter, /pm-export, /pm-arch, project health Top3, pasted logs/stacks, Spec Kit constitution discovery, and local .pm governance. Triggers on project management, governance, what should I do today, help me with this error."
+license: MIT
+metadata:
+  version: "0.0.6"
+  author: wei63w
 ---
 
 # PM Manager

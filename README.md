@@ -41,11 +41,23 @@ It is **not** a cloud PM suite and **not** a replacement for Jira/Linear. It is 
 
 ## Get Started
 
+### 1. Install the Agent Skill (skills.sh)
 
+```bash
+npx skills@latest add wei63w/pm-manager
+```
 
-### 1. Install the CLI (cross-platform)
+Or copy `skills/pm-manager` into your tool’s skills directory:
 
-Requires **[uv](https://docs.astral.sh/uv/)** and **Python 3.11+**.
+| Tool | Path |
+|------|------|
+| Cursor | `~/.cursor/skills/pm-manager/` |
+| Claude Code | `~/.claude/skills/pm-manager/` |
+| Codex | `~/.agents/skills/pm-manager/` |
+
+### 2. Install the CLI (optional, cross-platform)
+
+Requires **[uv](https://docs.astral.sh/uv/)** and **Python 3.11+**. The CLI scaffolds `.pm/` and installs per-agent adapters.
 
 ```bash
 # From GitHub (recommended)
@@ -73,7 +85,7 @@ uv tool install pm-manager-cli --force --from git+https://github.com/wei63w/pm-m
 
 
 
-### 2. Bootstrap a project
+### 3. Bootstrap a project
 
 In your **application** repository (not required to keep this pack checked out):
 
@@ -110,7 +122,7 @@ pm check
 
 
 
-### 3. Initialize governance in your agent
+### 4. Initialize governance in your agent
 
 Open Cursor / Claude Code in the project and run:
 
@@ -125,7 +137,7 @@ Open Cursor / Claude Code in the project and run:
 
 
 
-### 4. Check today's Top3
+### 5. Check today's Top3
 
 ```text
 /pm-status
@@ -133,7 +145,7 @@ Open Cursor / Claude Code in the project and run:
 
 You’ll get a short health line and **up to three** actionable todos. Claim one with `/pm-next`, close it with `/pm-done TODO-001`.
 
-### 5. Triage an incident
+### 6. Triage an incident
 
 Paste a stack trace or log into the chat:
 
@@ -143,7 +155,7 @@ Paste a stack trace or log into the chat:
 
 Conversation paste is a first-class evidence source (no need to save a file first).
 
-### 6. Pre-release full scan
+### 7. Pre-release full scan
 
 ```text
 /pm-all
@@ -179,10 +191,10 @@ After the scan, open **`.pm/dashboard/index.html`** in a browser for the visual 
 | --------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
 | **Cursor**            | `.cursor/skills/pm-manager` (+ optional per-command skills under `adapters/cursor/skills`) | `/pm-init`, `/pm-status`, … or natural language ("what should I do today") |
 | **Claude Code**       | `.claude/commands/pm-*.md`                                                                 | `/pm-init`, `/pm-status`, …                               |
-| **Other skill hosts** | Use root `SKILL.md` as a router into `templates/commands/`                                 | Follow host skill conventions                             |
+| **Other skill hosts** | Use `skills/pm-manager/SKILL.md` as a router into `templates/commands/`                    | Follow host skill conventions                             |
 
 
-Natural-language routing (when slash commands are unavailable) is documented in `[memory/ROUTING.md](./memory/ROUTING.md)`.
+Natural-language routing (when slash commands are unavailable) is documented in [`skills/pm-manager/memory/ROUTING.md`](./skills/pm-manager/memory/ROUTING.md).
 
 ## Available Slash Commands
 
@@ -224,7 +236,7 @@ Natural-language routing (when slash commands are unavailable) is documented in 
 | `/pm-discover` | `pm-discover` | Deep-scan all enabled modules |
 
 
-Command prompts live in `[templates/commands/](./templates/commands/)` with Spec Kit–style frontmatter and `handoffs`.
+Command prompts live in [`skills/pm-manager/templates/commands/`](./skills/pm-manager/templates/commands/) with Spec Kit–style frontmatter and `handoffs`.
 
 ## How it relates to Spec Kit
 
@@ -285,17 +297,19 @@ They can run in the **same repo**. PM Manager will read Spec Kit artifacts when 
 
 ```text
 pm-manager/
-  pyproject.toml           # uv/pip package (pm / pm-manager entrypoints)
-  src/pm_manager_cli/      # Cross-platform CLI (incl. pm dashboard)
-  SKILL.md                 # Router skill
-  AGENTS.md                # Agent-oriented notes
-  templates/commands/      # Slash/skill command prompts
-  templates/pm/            # Files copied into target .pm/
-  scripts/python/          # Thin wrappers (prefer `pm init`)
-  scripts/powershell/      # Legacy Windows helpers
-  adapters/cursor/         # Cursor skill variants
-  adapters/claude-code/    # Claude Code command files
-  memory/ROUTING.md        # NL → command map
+  pyproject.toml                 # uv/pip package (pm / pm-manager entrypoints)
+  src/pm_manager_cli/            # Cross-platform CLI (incl. pm dashboard)
+  skills/pm-manager/             # Installable Agent Skill (skills.sh)
+    SKILL.md                     # Router skill
+    AGENTS.md                    # Agent-oriented notes
+    templates/commands/          # Slash/skill command prompts
+    templates/pm/                # Files copied into target .pm/
+    memory/ROUTING.md            # NL → command map
+  scripts/python/                # Thin wrappers (prefer `pm init`)
+  scripts/powershell/            # Legacy Windows helpers
+  adapters/cursor/               # Cursor skill variants
+  adapters/claude-code/          # Claude Code command files
+  skills.sh.json                 # skills.sh groupings
 ```
 
 

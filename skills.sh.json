@@ -1,0 +1,11 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Project governance",
+      "description": "Local .pm workbench for health Top3, incident triage, release scans, and Spec Kit–aware charter discovery.",
+      "skills": ["pm-manager"]
+    }
+  ]
+}

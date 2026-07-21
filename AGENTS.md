@@ -1,31 +1,5 @@
-# AGENTS.md — PM Manager
+# AGENTS.md — PM Manager (repo)
 
-This repository is a **Spec Kit–inspired** skill pack for local project governance (`.pm/`).
+Installable Agent Skill lives under [`skills/pm-manager/`](./skills/pm-manager/).
 
-## Layout (mirrors Spec Kit ideas)
-
-| Path | Role (like Spec Kit) |
-|------|----------------------|
-| `templates/commands/*.md` | Slash/skill command prompts (`templates/commands` in Spec Kit) |
-| `templates/pm/*` | Artifacts copied into target project `.pm/` |
-| `scripts/python|powershell` | Deterministic scaffold helpers |
-| `adapters/cursor` | Cursor Agent Skills install |
-| `adapters/claude-code` | Claude Code slash commands |
-| `SKILL.md` | Router skill for Cursor / skills hosts |
-| Design docs | Local-only `pm-manager-v*.md` (gitignored / not published) |
-
-## Agent rules
-
-1. Prefer daily commands; module deep-dives go through `/pm-all` or `/pm-discover`.
-2. Conversation paste is first-class evidence for `/pm-fix`.
-3. Discover Spec Kit `.specify/memory/constitution.md` during `/pm-init` / `/pm-charter discover`.
-4. `.pm/` is local-only — add to `.git/info/exclude`, never `.gitignore` shared rules.
-5. Do not auto-modify application code/SQL/cloud without confirmation.
-6. Default noise filter: blocking + high; Top3 only in `/pm-status`.
-
-## Quick test
-
-```bash
-python pm-manager/scripts/python/create_pm_scaffold.py /path/to/project
-# then in agent: /pm-init  /pm-status
-```
+See [`skills/pm-manager/AGENTS.md`](./skills/pm-manager/AGENTS.md) and [`skills/pm-manager/SKILL.md`](./skills/pm-manager/SKILL.md).

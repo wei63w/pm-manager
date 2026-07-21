@@ -1,6 +1,6 @@
 [project]
 name = "pm-manager-cli"
-version = "0.0.5"
+version = "0.0.6"
 description = "PM Manager CLI — bootstrap local .pm project governance for AI coding agents."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -29,11 +29,11 @@ build-backend = "hatchling.build"
 packages = ["src/pm_manager_cli"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"templates" = "pm_manager_cli/pack/templates"
+"skills/pm-manager/templates" = "pm_manager_cli/pack/templates"
+"skills/pm-manager/memory" = "pm_manager_cli/pack/memory"
+"skills/pm-manager/SKILL.md" = "pm_manager_cli/pack/SKILL.md"
+"skills/pm-manager/AGENTS.md" = "pm_manager_cli/pack/AGENTS.md"
 "adapters" = "pm_manager_cli/pack/adapters"
-"memory" = "pm_manager_cli/pack/memory"
-"SKILL.md" = "pm_manager_cli/pack/SKILL.md"
-"AGENTS.md" = "pm_manager_cli/pack/AGENTS.md"
 "scripts/python/create_pm_scaffold.py" = "pm_manager_cli/pack/scripts/python/create_pm_scaffold.py"
 
 [project.optional-dependencies]

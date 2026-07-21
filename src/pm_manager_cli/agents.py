@@ -78,7 +78,7 @@ def install_skills_sh(
     if not npx:
         return False, "skipped (npx not found; install Node.js to enable skills.sh)"
 
-    cmd = [npx, "--yes", "skills", "add", source, "-y"]
+    cmd = [npx, "--yes", "skills@latest", "add", source, "-y"]
     try:
         proc = subprocess.run(
             cmd,
