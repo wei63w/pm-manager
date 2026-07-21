@@ -1,6 +1,13 @@
 **📋 PM Manager**  
 *Know what to fix next — with any AI coding agent.*
 
+[![Release](https://img.shields.io/github/v/release/wei63w/pm-manager?logo=github&label=release)](https://github.com/wei63w/pm-manager/releases/latest)
+[![Version](https://img.shields.io/badge/version-alpha-orange)](https://github.com/wei63w/pm-manager)
+[![Downloads](https://img.shields.io/github/downloads/wei63w/pm-manager/total?label=downloads&color=brightgreen)](https://github.com/wei63w/pm-manager/releases)
+[![Commit activity](https://img.shields.io/github/commit-activity/m/wei63w/pm-manager)](https://github.com/wei63w/pm-manager/commits/main)
+[![License](https://img.shields.io/github/license/wei63w/pm-manager)](https://github.com/wei63w/pm-manager/blob/main/LICENSE)
+[![skills.sh](https://skills.sh/b/wei63w/pm-manager)](https://skills.sh/wei63w/pm-manager)
+
 An open source skill pack for **local project governance** — init a `.pm/` workbench, keep a daily Top3, triage pasted logs, and run release-ready health scans. Inspired by [Spec Kit](https://github.com/github/spec-kit)’s command-template + multi-agent adapter model. Works alongside Spec Kit: Spec Kit drives *what to build*; PM Manager drives *project health and what’s next*.
 
 
