@@ -25,6 +25,7 @@
 - [与 Spec Kit 的关系](#与-spec-kit-的关系)
 - [核心原则](#核心原则)
 - [日常流程](#日常流程)
+- [生成的 `.pm/` 目录](#生成的-pm-目录)
 - [仓库布局](#仓库布局)
 - [前置条件](#前置条件)
 - [支持](#支持)
@@ -303,17 +304,77 @@ npx @wei63w/pm-manager init
          ↘ /pm-all  → .pm/dashboard/  （发布门禁 + 总览）
 ```
 
-### 目标产物 `.pm/dashboard/`（`/pm-all` 或 `pm dashboard` 之后）
+扫描后用浏览器打开 **`.pm/dashboard/index.html`**（或在 IDE 里读 `overview.md`）。完整目录说明见下一节。
+
+## 生成的 `.pm/` 目录
+
+`pm init` / `/pm-init` 会在**目标业务仓库**里创建仅本地的 `.pm/` 工作台（写入 `.git/info/exclude`，**禁止**写进共享 `.gitignore`）。后续 `/pm-*` / `pm` 命令再往里填内容。`.pm/` 默认不提交。
 
 ```text
-.pm/dashboard/
-  index.html    # 可视化看板 — 用浏览器打开
-  overview.md   # IDE 表格：KPI、进度条、模块风险排序、热点/待办
-  findings.md   # 汇总未关闭发现
-  todos.md      # 汇总未关闭待办
-  stats.json    # 计数 + health_score + module_risk
-  README.md     # 与 overview.md 相同（入口别名）
+.pm/
+  config/            # 项目配置 + 本机路径
+  state/             # 现状、待办、开发记录、索引
+  prd/               # 产品草稿（确认前不得当基线）
+  charter/           # 目标、REQ、NFR、DoD
+  outline/           # 史诗 / 里程碑
+  architecture/      # map.json、Mermaid、带注解目录树（兼扫描模块）
+  dashboard/         # HTML / Markdown 健康看板
+  engineering/       # 评审表 + 规范库（兼扫描模块）
+  evidence/scans/    # 脱敏后的扫描 JSON
+  inbox/stacks/      # 可选：给 /pm-fix 的堆栈落盘
+  bugs/              # 事故发现（含 incidents/）
+  environments/      # 扫描模块
+  integration/       # 扫描模块
+  testing/           # 扫描模块
+  release/           # 扫描模块
+  database/          # 扫描模块（Vue 前端常关闭）
+  operations/        # 扫描模块（Vue 前端常关闭）
+  cost/              # 扫描模块（Vue 前端常关闭）
+  docs/              # 按需 — 文档草稿，确认后才落正式路径
+  reviews/           # 按需 — 评审回填，不改业务代码
+  exports/           # 按需 — 可分享的脱敏摘要
 ```
+
+Vue / Nuxt 项目目录相同；`pm init` 可能在 `config/project.yaml` 里关掉 `database` / `operations` / `cost`，这些模块会保持空骨架。
+
+### 初始化即创建的目录
+
+| 目录 | 作用 |
+|------|------|
+| `config/` | `project.yaml`（技术栈、生命周期、PRD/宪章状态、模块开关、扫描排除）与 `local.yaml`（本机路径 / 凭证*引用*，禁止写明文密钥）。 |
+| `state/` | 活的治理台。初始化有 `overview.md`、`todo.md`、`completed.md`、`doc-index.md`、`audit.jsonl`、`dialogue.md`。后续命令会补 `report.md`、开发记录（`session.json`、`timeline.md`、`changes.md`、`suggestions.md`）、`checkup.md`、`test-gaps.md`、`guard.md`、`review-draft.md`。**待办权威源是 `todo.md`**，供 `/pm-status` / `/pm-next` / `/pm-done` 使用。 |
+| `prd/` | `.pm/prd/prd.md`，由 `/pm-init` 起草。在你 **confirm** 之前一直是 `draft`；未确认的 PRD 不能当作验收基线。 |
+| `charter/` | `charter.md`（目标/范围）、`requirements.md`（`REQ-xxx`）、`nfr.md`、`dod.md`、`sources.md`。来源可以是 Spec Kit、已确认 PRD，或 `/pm-charter` / `/pm-outline`。`charter.status=approved` 是可选项；只有批准后，扫描才能做「需求是否合理」对照。 |
+| `outline/` | `/pm-outline` 写出的 `project-outline.md`、`epics.md`、`milestones.md`。 |
+| `architecture/` | `/pm-arch` / `pm arch` 之后：`map.json`（导航地图，助手应先读这里）、Mermaid（`system-context.mmd`、`layer.mmd`、`request-flow.mmd` 等）、带注解 `tree.md`、`overview.md`、`scan.json`。本身也是扫描模块（checklist / findings / todos）。 |
+| `dashboard/` | `/pm-all` 或 `pm dashboard` 重建：`index.html`（浏览器）、`overview.md` / `README.md`（IDE）、`findings.md`、`todos.md`、`stats.json`（计数、`health_score`、模块风险）。 |
+| `engineering/` | `reviews.md`（处置表：confirm / false_positive / later）与 `rules.md`（只有 **confirmed** 才会成为启用规范）。本身也是扫描模块。 |
+| `evidence/scans/` | 每次命令脱敏后的 JSON（`{command}-{timestamp}.json`）。原始密钥不得入盘。 |
+| `inbox/stacks/` | 可选：把堆栈/日志先存成文件。`/pm-fix` 仍优先用当前对话粘贴。 |
+| `bugs/` | 事故模块：`/pm-fix` 追加 `findings.md` 与待办。`bugs/incidents/` 放结构化事故记录。 |
+
+每个**扫描模块**（`bugs`、`architecture`、`engineering`、`environments`、`integration`、`testing`、`release`、`database`、`operations`、`cost`）初始都有同样四个文件：`checklist.md`、`findings.md`、`todo.md`、`completed.md`。模块待办汇总进 `state/todo.md`；看板汇总未关闭项。
+
+| 模块 | 跟踪内容 |
+|------|----------|
+| `bugs/` | `/pm-fix` 分诊的生产/本地事故 |
+| `architecture/` | 地图 / 架构图 / 结构健康 |
+| `engineering/` | 代码质量与评审后续 |
+| `environments/` | 环境、配置、部署目标漂移 |
+| `integration/` | 第三方、CI、服务边界 |
+| `testing/` | 测试缺口与质量发现（`/pm-tests` 还会写 `state/test-gaps.md`） |
+| `release/` | 发布门禁遗留 |
+| `database/` | 库表 / SQL / 迁移发现 |
+| `operations/` | 运行与运维发现 |
+| `cost/` | 成本 / 资源发现 |
+
+### 后续命令按需创建的目录
+
+| 目录 | 由谁创建 | 作用 |
+|------|----------|------|
+| `docs/drafts/` | `pm docs --draft` / `/pm-docs` | 缺失核心文档的可编辑骨架 `DOC-*.md`。**确认后**才复制到 `.pm/docs/` 或你指定的路径（如 `docs/*.md`）。未确认不得写入业务树。 |
+| `reviews/annotations/` | `pm review annotate` / `/pm-review` | 仅回填备注，不改业务代码。已确认行沉淀到 `engineering/rules.md`。 |
+| `exports/` | `pm export` / `/pm-export` | 脱敏 Markdown 打包（默认 `pm-export-YYYYMMDD.md`），用于交接或换机。 |
 
 ## 仓库布局
 

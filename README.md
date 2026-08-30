@@ -25,6 +25,7 @@ An open source skill pack for **local project governance** — init a `.pm/` wor
 - [How it relates to Spec Kit](#how-it-relates-to-spec-kit)
 - [Core Philosophy](#core-philosophy)
 - [Daily Workflow](#daily-workflow)
+- [Generated `.pm/` layout](#generated-pm-layout)
 - [Repository Layout](#repository-layout)
 - [Prerequisites](#prerequisites)
 - [Support](#support)
@@ -303,17 +304,77 @@ Governing text is Chinese-first in [`.specify/memory/constitution.md`](./.specif
          ↘ /pm-all  → .pm/dashboard/  (release gate + overview)
 ```
 
-### Target `.pm/dashboard/` (after `/pm-all` or `pm dashboard`)
+After a scan, open **`.pm/dashboard/index.html`** in a browser (or `overview.md` in the IDE). The full folder map is below.
+
+## Generated `.pm/` layout
+
+`pm init` / `/pm-init` creates a **git-excluded** `.pm/` workbench in the **target** repo (written to `.git/info/exclude`, never to a shared `.gitignore`). Later `/pm-*` / `pm` commands fill more folders. Nothing here is meant to be committed.
 
 ```text
-.pm/dashboard/
-  index.html    # visual dashboard — open in a browser
-  overview.md   # IDE tables: KPI, bars, module risk ranking, hot/todos
-  findings.md   # aggregated open findings
-  todos.md      # aggregated open todos
-  stats.json    # counts + health_score + module_risk
-  README.md     # same as overview.md (entry alias)
+.pm/
+  config/            # project + machine-local settings
+  state/             # live board: status, todos, journal, indexes
+  prd/               # product draft (confirm before using as baseline)
+  charter/           # goals, REQs, NFR, DoD
+  outline/           # epics / milestones
+  architecture/      # map.json, Mermaid, annotated tree (+ scan module)
+  dashboard/         # HTML/MD health board
+  engineering/       # reviews + rules library (+ scan module)
+  evidence/scans/    # redacted scan JSON
+  inbox/stacks/      # optional stack dumps for /pm-fix
+  bugs/              # incident findings (+ incidents/)
+  environments/      # scan module
+  integration/       # scan module
+  testing/           # scan module
+  release/           # scan module
+  database/          # scan module (often off for Vue frontend)
+  operations/        # scan module (often off for Vue frontend)
+  cost/              # scan module (often off for Vue frontend)
+  docs/              # on demand — doc drafts until you confirm
+  reviews/           # on demand — annotate backfill only
+  exports/           # on demand — shareable summaries
 ```
+
+Vue / Nuxt projects keep the same tree; `pm init` may turn off `database` / `operations` / `cost` in `config/project.yaml` so those modules stay empty.
+
+### Core folders (created at init)
+
+| Folder | Purpose |
+|--------|---------|
+| `config/` | `project.yaml` (stack, lifecycle, PRD/charter status, which modules are on, scan excludes) and `local.yaml` (machine paths / credential *refs* — never raw secrets). |
+| `state/` | Living board. Starts with `overview.md`, `todo.md`, `completed.md`, `doc-index.md`, `audit.jsonl`, `dialogue.md`. Later commands add `report.md`, journal (`session.json`, `timeline.md`, `changes.md`, `suggestions.md`), `checkup.md`, `test-gaps.md`, `guard.md`, `review-draft.md`. **`todo.md` is the authority** for `/pm-status` / `/pm-next` / `/pm-done`. |
+| `prd/` | `.pm/prd/prd.md` — drafted by `/pm-init`. Stays `draft` until you **confirm**; unconfirmed PRDs must not be used as an acceptance baseline. |
+| `charter/` | `charter.md` (goals / scope), `requirements.md` (`REQ-xxx`), `nfr.md`, `dod.md`, `sources.md`. Filled from Spec Kit, a confirmed PRD, or `/pm-charter` / `/pm-outline`. `charter.status=approved` is optional; only then may scans compare “is this unreasonable?”. |
+| `outline/` | `project-outline.md`, `epics.md`, `milestones.md` from `/pm-outline`. |
+| `architecture/` | After `/pm-arch` / `pm arch`: `map.json` (navigation map — agents read this first), Mermaid (`system-context.mmd`, `layer.mmd`, `request-flow.mmd`, …), annotated `tree.md`, `overview.md`, `scan.json`. Also a scan module (checklist / findings / todos). |
+| `dashboard/` | Rebuilt by `/pm-all` or `pm dashboard`: `index.html` (browser), `overview.md` / `README.md` (IDE), `findings.md`, `todos.md`, `stats.json` (counts, `health_score`, module risk). |
+| `engineering/` | `reviews.md` (disposition table: confirm / false_positive / later) and `rules.md` (only **confirmed** findings become enabled rules). Also a scan module. |
+| `evidence/scans/` | Per-command JSON after desensitization (`{command}-{timestamp}.json`). Raw secrets must never land here. |
+| `inbox/stacks/` | Optional drop zone for stack traces / logs when you are not pasting into chat. `/pm-fix` prefers the current conversation paste first. |
+| `bugs/` | Incident module: `/pm-fix` appends `findings.md` + todos. `bugs/incidents/` holds structured incident notes. |
+
+Each **scan module** (`bugs`, `architecture`, `engineering`, `environments`, `integration`, `testing`, `release`, `database`, `operations`, `cost`) starts with the same four files: `checklist.md`, `findings.md`, `todo.md`, `completed.md`. Module todos roll up into `state/todo.md`; dashboard aggregates the open ones.
+
+| Module | Tracks |
+|--------|--------|
+| `bugs/` | Production / local incidents from `/pm-fix` |
+| `architecture/` | Map / diagram / structure health |
+| `engineering/` | Code-quality / review follow-ups |
+| `environments/` | Env, config, deploy-target drift |
+| `integration/` | Third-party, CI, service boundaries |
+| `testing/` | Test gaps and quality findings (`/pm-tests` also writes `state/test-gaps.md`) |
+| `release/` | Release-gate leftovers |
+| `database/` | Schema / SQL / migration findings |
+| `operations/` | Runtime / ops findings |
+| `cost/` | Cost / resource findings |
+
+### Folders created later (on demand)
+
+| Folder | Created by | Purpose |
+|--------|------------|---------|
+| `docs/drafts/` | `pm docs --draft` / `/pm-docs` | Editable `DOC-*.md` skeletons for missing core docs. **Confirm** before copying to `.pm/docs/` or a path you name (`docs/*.md`). Unconfirmed drafts must not land in the business tree. |
+| `reviews/annotations/` | `pm review annotate` / `/pm-review` | Backfill notes only. Does not patch application code. Confirmed rows go to `engineering/rules.md`. |
+| `exports/` | `pm export` / `/pm-export` | Desensitized Markdown bundle (default `pm-export-YYYYMMDD.md`) for hand-off or switching machines. |
 
 ## Repository Layout
 
