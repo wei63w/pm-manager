@@ -9,7 +9,13 @@ from rich.console import Console
 from rich.table import Table
 
 from pm_manager_cli import __version__
-from pm_manager_cli.agents import install_agents, install_skills_sh
+from pm_manager_cli.agents import (
+    AGENT_CHOICES,
+    agent_hint,
+    install_agents,
+    install_skills_sh,
+    resolve_agent_spec,
+)
 from pm_manager_cli.architecture import load_map, query_map, write_architecture
 from pm_manager_cli.audit import append_audit
 from pm_manager_cli.dashboard import hot_open_todos, write_dashboard
@@ -147,7 +153,7 @@ def init_cmd(
         "all",
         "--agent",
         "-a",
-        help="安装助手适配器: cursor | claude | all | none",
+        help=f"安装助手适配器: {AGENT_CHOICES}",
     ),
     scaffold_only: bool = typer.Option(
         False,
@@ -165,7 +171,7 @@ def init_cmd(
         help="配置模板: frontend | backend | service | script | auto（只补缺失键）",
     ),
 ) -> None:
-    """创建 .pm/ 治理台，并可选安装 Cursor/Claude 适配器。"""
+    """创建 .pm/ 治理台，并可选安装各编程助手适配器。"""
     root = _resolve_root(path)
     _require_dir(root)
 
@@ -213,17 +219,24 @@ def init_cmd(
             console.print("  空仓/新项目 — 下一步只说 /pm-init，并给出一句话意图")
 
     chosen = "none" if scaffold_only else agent.lower().strip()
-    if chosen not in {"cursor", "claude", "all", "none"}:
-        raise typer.BadParameter("--agent 必须是 cursor|claude|all|none")
+    try:
+        resolve_agent_spec(chosen, allow_none=True)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
 
     if chosen != "none":
         try:
-            results = install_agents(root, chosen)  # type: ignore[arg-type]
+            results = install_agents(root, chosen)
         except FileNotFoundError as exc:
             console.print(f"[red]错误[/red] 适配器安装失败: {exc}")
             raise typer.Exit(2) from exc
+        except ValueError as exc:
+            raise typer.BadParameter(str(exc)) from exc
         for name, dest in results.items():
             console.print(f"[green]完成[/green] 已安装 {name} -> {dest}")
+            hint = agent_hint(name)
+            if hint:
+                console.print(f"[dim]{name}：{hint}[/dim]")
 
     if skills_sh and not scaffold_only:
         ok, msg = install_skills_sh(root)
@@ -256,7 +269,7 @@ def install_cmd(
         "all",
         "--agent",
         "-a",
-        help="cursor | claude | all",
+        help=f"{AGENT_CHOICES}",
     ),
     skills_sh: bool = typer.Option(
         False,
@@ -268,15 +281,18 @@ def install_cmd(
     root = _resolve_root(path)
     _require_dir(root)
     chosen = agent.lower().strip()
-    if chosen not in {"cursor", "claude", "all"}:
-        raise typer.BadParameter("--agent 必须是 cursor|claude|all")
     try:
-        results = install_agents(root, chosen)  # type: ignore[arg-type]
+        results = install_agents(root, chosen)
     except FileNotFoundError as exc:
         console.print(f"[red]错误[/red] 适配器安装失败: {exc}")
         raise typer.Exit(2) from exc
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
     for name, dest in results.items():
         console.print(f"[green]完成[/green] 已安装 {name} -> {dest}")
+        hint = agent_hint(name)
+        if hint:
+            console.print(f"[dim]{name}：{hint}[/dim]")
 
     if skills_sh:
         ok, msg = install_skills_sh(root)

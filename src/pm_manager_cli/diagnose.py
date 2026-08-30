@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
+from pm_manager_cli.agents import installed_agent_keys
 from pm_manager_cli.reviews import pending_review_count
 from pm_manager_cli.speckit import read_prd_status
 
@@ -98,18 +99,16 @@ def collect_checks(root: Path) -> list[CheckItem]:
             "" if dash else "尚未生成 — `/pm-all` 或 `pm dashboard`",
         )
     )
+    present = installed_agent_keys(root)
     items.append(
         CheckItem(
-            "Cursor 技能",
-            (root / ".cursor" / "skills" / "pm-manager" / "SKILL.md").is_file(),
+            "助手适配器",
+            bool(present),
+            "已装: " + ", ".join(present)
+            if present
+            else "运行 `pm install --agent all`，然后新开对话输入 /pm-init",
         )
     )
-    claude = (
-        any((root / ".claude" / "commands").glob("pm-*.md"))
-        if (root / ".claude" / "commands").is_dir()
-        else False
-    )
-    items.append(CheckItem("Claude 命令", claude))
     exclude = root / ".git" / "info" / "exclude"
     excluded = False
     if exclude.is_file():

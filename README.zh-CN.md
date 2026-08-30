@@ -86,15 +86,17 @@ uv tool install pm-manager-cli --force --from git+https://github.com/wei63w/pm-m
 ```bash
 cd /path/to/your-app
 
-# 创建 .pm/ + 安装 Cursor 与 Claude 适配器（默认；不需要 Node.js）
+# 创建 .pm/ + 安装主流助手适配器（默认；不需要 Node.js）
 # 可选 skills.sh 索引：pm init --skills-sh
 pm init
 
-# 仅 Cursor
+# 只装一家
 pm init --agent cursor
-
-# 仅 Claude Code
 pm init --agent claude
+
+# 组合，或写入注册表里全部宿主
+pm init --agent cursor,codex,copilot
+pm init --agent full
 
 # 只搭 .pm/（不装助手文件，也不走 skills.sh）
 pm init --scaffold-only
@@ -114,7 +116,7 @@ pm check
 
 ### 4. 在助手里初始化治理
 
-在项目中打开 Cursor / Claude Code，执行：
+在**刚才执行 `pm init` 的同一个项目目录**打开你的编程助手。Cursor 请**新开**一个 Agent 对话并输入 `/pm`，然后执行：
 
 ```text
 /pm-init
@@ -161,7 +163,7 @@ pm check
 |------|------|
 | `pm version` | 打印 CLI 版本 |
 | `pm init [path]` | 创建 `.pm/` + 安装助手适配器（默认不跑 Node/skills.sh） |
-| `pm init --agent cursor\|claude\|all\|none` | 选择要安装的适配器 |
+| `pm init --agent all\|full\|cursor\|claude\|…` | 选择适配器（`all`=主流；`full`=注册表全部；可用逗号组合） |
 | `pm init --scaffold-only` | 只创建 `.pm/` |
 | `pm init --skills-sh` | 额外执行 `npx --yes skills@latest add wei63w/pm-manager -y`（需要 Node） |
 | `pm install --agent …` | 刷新适配器，不重新搭脚手架 |
@@ -186,11 +188,24 @@ pm check
 
 ## 支持的 AI 编程助手
 
-| 助手 | 安装路径 | 调用方式 |
-|------|----------|----------|
-| **Cursor** | `.cursor/skills/pm-manager`（可选：`adapters/cursor/skills` 下按命令拆分的技能） | `/pm-init`、`/pm-status` … 或自然语言（「今天该做什么」） |
-| **Claude Code** | `.claude/commands/pm-*.md` | `/pm-init`、`/pm-status` … |
-| **其他技能宿主** | 以 `skills/pm-manager/SKILL.md` 为路由，进入 `templates/commands/` | 遵循宿主技能约定 |
+命令正文在安装时从同一份源生成：`skills/pm-manager/templates/commands/`。`pm init`（默认 `--agent all`）写入下表**主流**宿主。其余用 `--agent full`，或 `--agent cursor,gemini` 自选。
+
+| 助手 | `--agent` | 安装路径 | 调用方式 |
+|------|-----------|----------|----------|
+| **Cursor** | `cursor` | `.cursor/skills/pm-*` | 新开 Agent 对话，输入 `/pm` |
+| **Claude Code** | `claude` | `.claude/skills/pm-*` + `.claude/commands/pm-*.md` | `/pm-init` |
+| **Codex / Zed** | `codex` | `.agents/skills/pm-*` | 技能 `pm-init` / `$pm-init` |
+| **GitHub Copilot** | `copilot` | `.github/skills/pm-*` | Copilot Chat 技能 `pm-init` |
+| **Windsurf** | `windsurf` | `.windsurf/workflows/pm-*.md` | `/pm-init` |
+| **Gemini CLI** | `gemini` | `.gemini/commands/pm-*.toml` | `/pm-init` |
+| **Qwen Code** | `qwen` | `.qwen/commands/pm-*.md` | `/pm-init` |
+| **opencode** | `opencode` | `.opencode/commands/pm-*.md` | `/pm-init` |
+| **Kilo Code** | `kilocode` | `.kilo/commands/pm-*.md` | `/pm-init` |
+| **Trae** | `trae` | `.trae/skills/pm-*` | `/pm-init` |
+| **Auggie** | `auggie` | `.augment/commands/pm-*.md` | `/pm-init` |
+| **Cline** | `cline` | `.clinerules/workflows/pm-*.md` | `/pm-init` |
+
+也已注册（`--agent <key>` 或 `--agent full`）：`grok`、`droid`、`lingma`、`kimi`、`zcode`、`command-code`、`qoder`、`alquimia`、`devin`、`codebuddy`、`junie`、`shai`、`omp`、`firebender`、`tabnine`、`kiro`、`pi`。
 
 无斜杠命令时的自然语言路由见 [`skills/pm-manager/memory/ROUTING.md`](./skills/pm-manager/memory/ROUTING.md)。
 

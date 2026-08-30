@@ -86,15 +86,17 @@ In your **application** repository (not required to keep this pack checked out):
 ```bash
 cd /path/to/your-app
 
-# Create .pm/ + install Cursor & Claude adapters (default; no Node.js)
+# Create .pm/ + install mainstream assistant adapters (default; no Node.js)
 # Optional skills.sh index: pm init --skills-sh
 pm init
 
-# Cursor only
+# One host
 pm init --agent cursor
-
-# Claude Code only
 pm init --agent claude
+
+# Combine hosts, or write every registered host
+pm init --agent cursor,codex,copilot
+pm init --agent full
 
 # Scaffold .pm/ only (no agent files, no skills.sh)
 pm init --scaffold-only
@@ -114,7 +116,7 @@ pm check
 
 ### 4. Initialize governance in your agent
 
-Open Cursor / Claude Code in the project and run:
+Open the same project folder in your coding agent. In Cursor, start a **new** Agent chat and type `/pm`. Then run:
 
 ```text
 /pm-init
@@ -161,7 +163,7 @@ After the scan, open **`.pm/dashboard/index.html`** in a browser for the visual 
 |---------|-------------|
 | `pm version` | Print CLI version |
 | `pm init [path]` | Create `.pm/` + install agent adapters (Node/skills.sh off by default) |
-| `pm init --agent cursor\|claude\|all\|none` | Choose which adapters to install |
+| `pm init --agent all\|full\|cursor\|claude\|…` | Choose adapters (`all` = mainstream; `full` = every registered host; comma-separated OK) |
 | `pm init --scaffold-only` | Only create `.pm/` |
 | `pm init --skills-sh` | Also run `npx --yes skills@latest add wei63w/pm-manager -y` (needs Node) |
 | `pm install --agent …` | Refresh adapters without scaffolding |
@@ -186,11 +188,24 @@ After the scan, open **`.pm/dashboard/index.html`** in a browser for the visual 
 
 ## Supported AI Coding Agents
 
-| Agent | Install path | How you invoke |
-|-------|--------------|----------------|
-| **Cursor** | `.cursor/skills/pm-manager` (+ optional per-command skills under `adapters/cursor/skills`) | `/pm-init`, `/pm-status`, … or natural language ("what should I do today") |
-| **Claude Code** | `.claude/commands/pm-*.md` | `/pm-init`, `/pm-status`, … |
-| **Other skill hosts** | Use `skills/pm-manager/SKILL.md` as a router into `templates/commands/` | Follow host skill conventions |
+Command prompts are generated at install time from one source: `skills/pm-manager/templates/commands/`. `pm init` (default `--agent all`) writes the **mainstream** hosts below. Use `--agent full` for the rest of the registry, or `--agent cursor,gemini` to pick.
+
+| Agent | `--agent` | Install path | How you invoke |
+|-------|-----------|--------------|----------------|
+| **Cursor** | `cursor` | `.cursor/skills/pm-*` | New Agent chat, type `/pm` |
+| **Claude Code** | `claude` | `.claude/skills/pm-*` + `.claude/commands/pm-*.md` | `/pm-init` |
+| **Codex / Zed** | `codex` | `.agents/skills/pm-*` | skill `pm-init` / `$pm-init` |
+| **GitHub Copilot** | `copilot` | `.github/skills/pm-*` | Copilot Chat skill `pm-init` |
+| **Windsurf** | `windsurf` | `.windsurf/workflows/pm-*.md` | `/pm-init` |
+| **Gemini CLI** | `gemini` | `.gemini/commands/pm-*.toml` | `/pm-init` |
+| **Qwen Code** | `qwen` | `.qwen/commands/pm-*.md` | `/pm-init` |
+| **opencode** | `opencode` | `.opencode/commands/pm-*.md` | `/pm-init` |
+| **Kilo Code** | `kilocode` | `.kilo/commands/pm-*.md` | `/pm-init` |
+| **Trae** | `trae` | `.trae/skills/pm-*` | `/pm-init` |
+| **Auggie** | `auggie` | `.augment/commands/pm-*.md` | `/pm-init` |
+| **Cline** | `cline` | `.clinerules/workflows/pm-*.md` | `/pm-init` |
+
+Also registered (use `--agent <key>` or `--agent full`): `grok`, `droid`, `lingma`, `kimi`, `zcode`, `command-code`, `qoder`, `alquimia`, `devin`, `codebuddy`, `junie`, `shai`, `omp`, `firebender`, `tabnine`, `kiro`, `pi`.
 
 Natural-language routing (when slash commands are unavailable) is documented in [`skills/pm-manager/memory/ROUTING.md`](./skills/pm-manager/memory/ROUTING.md).
 

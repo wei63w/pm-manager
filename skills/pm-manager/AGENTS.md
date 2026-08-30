@@ -11,8 +11,8 @@
 | `templates/commands/*.md` | 斜杠/技能命令提示（Spec Kit 的 `templates/commands`） |
 | `templates/pm/*` | 复制进目标项目 `.pm/` 的产物 |
 | `scripts/python\|powershell` | 确定性脚手架（仓库根目录） |
-| `adapters/cursor` | Cursor Agent Skills 安装（仓库根目录） |
-| `adapters/claude-code` | Claude Code 斜杠命令（仓库根目录） |
+| `adapters/cursor` | Cursor 技能源（仓库内同步用；安装时从 `templates/commands/` 生成） |
+| `adapters/claude-code` | Claude 命令源（同上） |
 | `SKILL.md` | Cursor / 技能宿主的路由技能 |
 | 设计文档 | 仅本地 `pm-manager-v*.md`（gitignore / 不发布） |
 
