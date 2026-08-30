@@ -18,6 +18,7 @@ An open source skill pack for **local project governance** — init a `.pm/` wor
 
 - [What is PM Manager?](#what-is-pm-manager)
 - [Get Started](#get-started)
+- [Vue frontend projects](#vue-frontend-projects)
 - [CLI Reference](#cli-reference)
 - [Supported AI Coding Agents](#supported-ai-coding-agents)
 - [Available Slash Commands](#available-slash-commands)
@@ -113,6 +114,18 @@ pm check
 ```
 
 > Windows / macOS / Linux all use the same commands. Legacy PowerShell helpers under `scripts/powershell/` still work, but `pm init` **is preferred**.
+
+### Vue frontend projects
+
+If the app's `package.json` lists `vue` or `nuxt`, `pm init` keeps the usual Python path and **also** seeds frontend defaults (no SQL/ops modules, Vue/Vite stack labels). `.vue` files join the architecture map; request-flow diagrams use Vue Router instead of an API gateway.
+
+Without Python, scaffold only:
+
+```bash
+npx @wei63w/pm-manager init
+```
+
+Then open the same repo in Cursor and run `/pm-init`. Architecture maps, reviews, and the HTML dashboard still use `pm arch` / `pm review` / `pm dashboard` when the Python CLI is installed.
 
 ### 4. Initialize governance in your agent
 
@@ -316,6 +329,7 @@ pm-manager/
     memory/ROUTING.md            # NL → command map
   scripts/python/                # Thin wrappers (prefer `pm init`)
   scripts/powershell/            # Legacy Windows helpers
+  packages/npx-cli/              # Optional Node init (`npx @wei63w/pm-manager init`)
   adapters/cursor/               # Cursor skill variants
   adapters/claude-code/          # Claude Code command files
   skills.sh.json                 # skills.sh groupings

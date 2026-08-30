@@ -27,10 +27,10 @@ KIND_LABELS = {
     "refactor": "重构优化",
     "other": "其他",
 }
-_SOURCE_SUFFIXES = {".py", ".java", ".kt", ".ts", ".tsx", ".js", ".jsx", ".go", ".rs"}
+_SOURCE_SUFFIXES = {".py", ".java", ".kt", ".ts", ".tsx", ".js", ".jsx", ".go", ".rs", ".vue"}
 _FILE_RE = re.compile(
     r"(?:`([^`\n]{3,160})`)"
-    r"|((?:[\w.-]+[/\\])+[\w.-]+\.(?:py|ts|tsx|js|jsx|go|rs|java|kt|md|yml|yaml|json|toml|sql))"
+    r"|((?:[\w.-]+[/\\])+[\w.-]+\.(?:py|ts|tsx|js|jsx|go|rs|java|kt|vue|md|yml|yaml|json|toml|sql))"
     r"|((?:src|tests|docs|skills|adapters|scripts)[/\\][\w./\\-]{2,140})",
     re.IGNORECASE,
 )

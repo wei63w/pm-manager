@@ -1,3 +1,8 @@
+---
+name: "pm-status"
+description: "PM Manager /pm-status"
+---
+
 ﻿---
 description: Show governance health, wizard next step, all open blocking/high todos, and pending review count. Primary daily entry.
 handoffs:

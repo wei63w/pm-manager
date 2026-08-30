@@ -1,4 +1,5 @@
 ---
+name: "pm-export"
 description: Export desensitized governance summary markdown for sharing or machine switch.
 ---
 

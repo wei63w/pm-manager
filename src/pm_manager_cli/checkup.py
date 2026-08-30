@@ -13,7 +13,7 @@ from pm_manager_cli.docs_index import scan_core_docs
 from pm_manager_cli.redact import contains_secret_residue, redact
 from pm_manager_cli.rules_lib import match_rules
 
-_SOURCE = {".py", ".ts", ".tsx", ".js", ".jsx", ".go", ".rs", ".java", ".kt"}
+_SOURCE = {".py", ".ts", ".tsx", ".js", ".jsx", ".go", ".rs", ".java", ".kt", ".vue"}
 _EVAL = re.compile(r"\beval\s*\(|\bpickle\.loads\s*\(|shell\s*=\s*True")
 _TODO = re.compile(r"\b(TODO|FIXME|XXX)\b")
 _STUB = re.compile(r"NotImplementedError|\braise NotImplemented")

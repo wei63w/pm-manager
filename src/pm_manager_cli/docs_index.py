@@ -24,7 +24,7 @@ CORE_DOCS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     ),
 )
 
-_SOURCE_SUFFIXES = {".py", ".java", ".kt", ".ts", ".js", ".go", ".rs"}
+_SOURCE_SUFFIXES = {".py", ".java", ".kt", ".ts", ".js", ".go", ".rs", ".vue"}
 
 DRAFT_HINTS = {
     "DOC-agents": "给编码助手的仓库说明：能改什么、先读哪些文件。",

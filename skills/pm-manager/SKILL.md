@@ -3,7 +3,7 @@ name: pm-manager
 description: "Project governance workbench (/pm-*). Daily: /pm-init, /pm-status, /pm-next, /pm-done, /pm-fix; release: /pm-all; journal: /pm-journal; review diffs: /pm-review; diagnose: /pm-check. Triggers on what should I do today, help me with this error, initialize governance, review this change, session intent, timeline."
 license: MIT
 metadata:
-  version: "0.0.9"
+  version: "0.1.0"
   author: wei63w
 ---
 

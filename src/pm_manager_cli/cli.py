@@ -34,7 +34,7 @@ from pm_manager_cli.journal import (
 )
 from pm_manager_cli.snapshot import write_overview
 from pm_manager_cli.checkup import load_checkup, run_checkup
-from pm_manager_cli.config_profile import apply_profile
+from pm_manager_cli.config_profile import apply_profile, seed_vue_defaults
 from pm_manager_cli.export_audit import write_export
 from pm_manager_cli.guard import run_gate, write_guard
 from pm_manager_cli.hooks import hook_status, install_hook, uninstall_hook
@@ -57,6 +57,7 @@ from pm_manager_cli.test_assist import write_test_gaps
 from pm_manager_cli.speckit import (
     detect_speckit,
     existing_prd_candidates,
+    infer_project_type,
     looks_like_existing_project,
     read_prd_status,
     write_init_metadata,
@@ -184,6 +185,10 @@ def init_cmd(
 
         detection = detect_speckit(root)
         write_init_metadata(root, detection)
+        if infer_project_type(root) == "vue":
+            dest, seeded = seed_vue_defaults(root)
+            extra = "、".join(seeded) if seeded else "无（已有配置未覆盖）"
+            console.print(f"[green]完成[/green] Vue 前端默认值 -> {dest}（写入: {extra}）")
         if template:
             dest, added = apply_profile(root, template)
             extra = "、".join(added) if added else "无新键（已有配置未覆盖）"

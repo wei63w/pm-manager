@@ -26,7 +26,7 @@ User-facing replies must be **Chinese** when the user writes Chinese. Command na
 
 Preferred: `pm init <root>` (creates `.pm/`, git exclude, adapters). CLI no longer runs skills.sh unless `--skills-sh`.
 
-Fallbacks: `scripts/powershell/create-pm-scaffold.ps1`, `python scripts/python/create_pm_scaffold.py`, or copy `templates/pm/` by hand.
+Fallbacks: `npx @wei63w/pm-manager init`, `scripts/powershell/create-pm-scaffold.ps1`, `python scripts/python/create_pm_scaffold.py`, or copy `templates/pm/` by hand.
 
 Do **not** overwrite user-edited files under `.pm/`. Never overwrite `prd.status=confirmed` or `charter.status=approved`.
 
@@ -35,7 +35,7 @@ Do **not** overwrite user-edited files under `.pm/`. Never overwrite `prd.status
 - `new`: empty or scaffold-only (README / `.git` only, no business source).
 - `existing`: build files, `src` / `app` / `lib`, or app config present.
 
-If `project.type` is `unknown` / empty, infer from manifests (`package.json` → node, `pyproject.toml` → python, `go.mod` → go, `pom.xml` / `build.gradle` → java, `Cargo.toml` → rust). Do not invent a stack. Write `project.lifecycle` and `project.type` on `.pm/config/project.yaml`.
+If `project.type` is `unknown` / empty, infer from manifests (`package.json` with vue/nuxt deps → vue, other `package.json` → node, `pyproject.toml` → python, `go.mod` → go, `pom.xml` / `build.gradle` → java, `Cargo.toml` → rust). Do not invent a stack. Write `project.lifecycle` and `project.type` on `.pm/config/project.yaml`. If type is `vue` and fields still match scaffold defaults, apply Vue frontend seeds (`modules.database/operations/cost: false`, Vite/Vue runtime on `stack`, extra scan excludes).
 
 ### 3. Detect Spec Kit (required)
 
@@ -74,6 +74,7 @@ Analyze **only** these (no `/pm-all`, no module-by-module deep review):
 - README (and short docs titles under `docs/`)
 - Manifests: `package.json`, `pyproject.toml`, `go.mod`, `pom.xml`, `Cargo.toml`, compose files
 - Top two directory levels of `src` / `app` / `apps` / `lib` / `cmd` (skip `node_modules`, `target`, `.git`, `dist`, `build`)
+- **If Vue** (`package.json` deps contain `vue` or `nuxt`): also `vite.config.*` / `nuxt.config.*` and `src/components` / `views` / `pages` / `router` / `stores` / `composables`. In 「当前产品（据仓库观察）」cite framework, router, store, and build tool with paths. Never invent.
 
 Then write a complete draft to `.pm/prd/prd.md`:
 
@@ -99,6 +100,8 @@ PRD 草稿：`.pm/prd/prd.md`
 - revise: <要改什么>
 - skip — 本次不要 PRD 基线（仍可做技术扫描）
 ```
+
+If this repo is Vue, add one extra line: 纯前端可先 `skip`，仍做技术轻扫。
 
 #### D. No Spec Kit — new / empty repo
 

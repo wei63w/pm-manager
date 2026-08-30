@@ -1,3 +1,8 @@
+---
+name: "pm-all"
+description: "PM Manager /pm-all"
+---
+
 ﻿---
 description: Full technical governance scan; rebuild .pm/dashboard. Default does not wait on draft PRD. Use --compare-baseline only after a confirmed PRD/charter.
 handoffs:

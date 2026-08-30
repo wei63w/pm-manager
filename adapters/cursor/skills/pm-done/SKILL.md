@@ -1,3 +1,8 @@
+---
+name: "pm-done"
+description: "PM Manager /pm-done"
+---
+
 ﻿---
 description: Close a todo (TODO-xxx), sync completed.md, refresh overview.
 handoffs:

@@ -77,7 +77,9 @@ def infer_project_type(root: Path) -> str:
     ):
         return "python"
     if (root / "package.json").is_file():
-        return "node"
+        from pm_manager_cli.vue_detect import is_vue_project
+
+        return "vue" if is_vue_project(root) else "node"
     if (root / "go.mod").is_file():
         return "go"
     if (root / "Cargo.toml").is_file():

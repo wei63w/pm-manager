@@ -31,6 +31,9 @@ _EVAL = re.compile(r"\beval\s*\(|\bpickle\.loads\s*\(|shell\s*=\s*True")
 _TODO = re.compile(r"\b(TODO|FIXME|XXX)\b")
 _STUB = re.compile(r"NotImplementedError|\braise NotImplemented|\bpass\s*$")
 _NAME = re.compile(r"^(?:def|class)\s+([a-z])\b")
+_VHTML = re.compile(r"\bv-html\s*=")
+_VFOR = re.compile(r"\bv-for\s*=")
+_VKEY = re.compile(r":key\b|v-bind:key\b")
 
 
 def _now() -> str:
@@ -185,6 +188,38 @@ def heuristic_findings(root: Path, blob: str) -> list[ReviewRow]:
                     )
                 )
                 break
+        vueish = path.endswith(".vue") or _VHTML.search(added_txt) or _VFOR.search(added_txt)
+        if vueish:
+            for n, t in item["added"]:
+                if _VHTML.search(t):
+                    rows.append(
+                        _finding(
+                            summary="v-html 未消毒风险",
+                            reasoning="新增 v-html 会按 HTML 渲染，若绑定用户输入可能导致 XSS。须证明已消毒或改为文本插值。",
+                            snippet=t.strip()[:80],
+                            severity="P0",
+                            path=path,
+                            line=str(n),
+                            dimension="security",
+                        )
+                    )
+                    break
+            if _VFOR.search(added_txt) and not _VKEY.search(added_txt):
+                n, t = next(
+                    ((n, t) for n, t in item["added"] if _VFOR.search(t)),
+                    (item["added"][0][0], item["added"][0][1]) if item["added"] else ("", path),
+                )
+                rows.append(
+                    _finding(
+                        summary="v-for 缺少 key",
+                        reasoning="新增 v-for 未见 :key / v-bind:key，列表复用可能错位。",
+                        snippet=t.strip()[:80],
+                        severity="P2",
+                        path=path,
+                        line=str(n),
+                        dimension="quality",
+                    )
+                )
         for rule in match_rules(root, path=path, blob=added_txt):
             snip = item["added"][0][1].strip() if item["added"] else path
             line = item["added"][0][0] if item["added"] else ""

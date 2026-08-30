@@ -1,4 +1,5 @@
 ---
+name: "pm-check"
 description: Diagnose .pm/ health (missing files, broken audit, stale map, unconfirmed PRD) and repair or increment without overwriting confirmed content.
 ---
 

@@ -58,6 +58,14 @@ def test_infer_project_type(tmp_path: Path) -> None:
     assert infer_project_type(tmp_path) == "node"
 
 
+def test_infer_project_type_vue_from_deps(tmp_path: Path) -> None:
+    (tmp_path / "package.json").write_text(
+        '{"dependencies":{"vue":"^3.4.0"}}\n',
+        encoding="utf-8",
+    )
+    assert infer_project_type(tmp_path) == "vue"
+
+
 def test_looks_like_existing_project(tmp_path: Path) -> None:
     assert looks_like_existing_project(tmp_path) is False
     (tmp_path / "pyproject.toml").write_text("[project]\nname='x'\n", encoding="utf-8")

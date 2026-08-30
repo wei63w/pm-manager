@@ -8,6 +8,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
+from pm_manager_cli.vue_detect import has_dep, is_vue_project, vue_hints
+
 SKIP_DIRS = {
     ".git",
     ".pm",
@@ -28,6 +30,7 @@ SKIP_DIRS = {
     "vendor",
     ".next",
     ".nuxt",
+    ".output",
     "bin",
     "obj",
 }
@@ -137,6 +140,10 @@ def _detect_stacks(root: Path) -> list[str]:
             if "Spring Boot" not in stacks:
                 stacks.append("Spring Boot")
             break
+    if is_vue_project(root):
+        for label in vue_hints(root).stacks:
+            if label not in stacks:
+                stacks.append(label)
     return stacks
 
 
@@ -257,6 +264,43 @@ def _scan_controller_files(root: Path) -> list[str]:
             found.append(_rel(root, p))
         if len(found) >= 16:
             break
+    return found
+
+
+def _scan_vue_route_files(root: Path) -> list[str]:
+    """Page/router files for Vue SPAs. Empty when not a Vue repo."""
+    if not is_vue_project(root):
+        return []
+    found: list[str] = []
+    seen: set[str] = set()
+
+    def add(rel: str) -> None:
+        if rel in seen:
+            return
+        if (root / rel).is_file():
+            seen.add(rel)
+            found.append(rel)
+
+    for rel in (
+        "src/router/index.ts",
+        "src/router/index.js",
+        "src/router.ts",
+        "src/router.js",
+        "app/router/index.ts",
+        "app/router/index.js",
+    ):
+        add(rel)
+    for folder in ("src/pages", "src/views", "pages", "views", "app/pages"):
+        d = root / folder
+        if not d.is_dir():
+            continue
+        try:
+            for p in sorted(d.rglob("*.vue")):
+                add(_rel(root, p))
+                if len(found) >= 16:
+                    return found
+        except OSError:
+            continue
     return found
 
 
@@ -404,8 +448,38 @@ def _service_deps_mmd(model: ProjectModel) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _vue_request_flow_mmd(model: ProjectModel) -> str:
+    has_router = has_dep(model.root, "vue-router") or bool(_scan_vue_route_files(model.root))
+    has_pinia = has_dep(model.root, "pinia")
+    page = "Page / View"
+    for folder in ("src/pages", "src/views", "pages", "views"):
+        if (model.root / folder).is_dir():
+            page = folder.replace("src/", "")
+            break
+    lines = [
+        "flowchart TD",
+        f"  %% Request flow heuristic for {model.name} (Vue)",
+        "  U([Browser])",
+    ]
+    if has_router:
+        lines.append("  U --> R[Vue Router]")
+        lines.append(f'  R --> P["{page}"]')
+    else:
+        lines.append(f'  U --> P["{page}"]')
+    lines.append('  P --> C[Component]')
+    if has_pinia:
+        lines.append("  P --> S[Pinia Store]")
+        lines.append("  S --> A[API client]")
+        lines.append("  C --> A")
+    else:
+        lines.append("  C --> A[API client]")
+    return "\n".join(lines) + "\n"
+
+
 def _request_flow_mmd(model: ProjectModel) -> str:
     """Typical request flowchart."""
+    if is_vue_project(model.root):
+        return _vue_request_flow_mmd(model)
     ctrl = model.controllers[0] if model.controllers else "Controller"
     mod = model.modules[0] if model.modules else model.name
     db = next(
@@ -531,7 +605,48 @@ def _overview_md(model: ProjectModel, diagrams: dict[str, str]) -> str:
     return "\n".join(lines)
 
 
+def _vue_layer_mmd(model: ProjectModel) -> str:
+    root = model.root
+    src = root / "src"
+
+    def dir_label(*candidates: str) -> str | None:
+        for name in candidates:
+            if (src / name).is_dir():
+                return f"src/{name}"
+            if (root / name).is_dir():
+                return name
+        return None
+
+    pages = dir_label("pages", "views")
+    components = dir_label("components")
+    state = dir_label("composables", "stores")
+    api = dir_label("api", "services")
+    lines = [
+        "flowchart TB",
+        f"  %% Layered architecture for {model.name} (Vue)",
+        "  subgraph pages [页面]",
+        f'    Pages["{pages or "pages / views"}"]',
+        "  end",
+        "  subgraph components [组件]",
+        f'    Components["{components or "components"}"]',
+        "  end",
+        "  subgraph state [状态 / 组合]",
+        f'    State["{state or "composables / stores"}"]',
+        "  end",
+        "  subgraph api [接口]",
+        f'    Api["{api or "api"}"]',
+        "  end",
+        "  pages --> components",
+        "  pages --> state",
+        "  components --> api",
+        "  state --> api",
+    ]
+    return "\n".join(lines) + "\n"
+
+
 def _layer_mmd(model: ProjectModel) -> str:
+    if is_vue_project(model.root):
+        return _vue_layer_mmd(model)
     ui = [m for m in model.modules if re.search(r"web|ui|front|client|app", m, re.I)]
     data = [e for e in model.externals if e in {"MySQL", "PostgreSQL", "MongoDB", "Database", "Prisma/DB", "Redis"}]
     app = [m for m in model.modules if m not in ui] or [model.name]
@@ -621,6 +736,16 @@ def _manifest_key_files(root: Path) -> list[dict[str, str]]:
         ("main.py", "应用入口"),
         ("src/index.ts", "应用入口"),
         ("src/main.ts", "应用入口"),
+        ("src/App.vue", "根组件"),
+        ("src/app.vue", "根组件"),
+        ("App.vue", "根组件"),
+        ("index.html", "HTML 入口"),
+        ("vite.config.ts", "Vite 配置"),
+        ("vite.config.js", "Vite 配置"),
+        ("nuxt.config.ts", "Nuxt 配置"),
+        ("nuxt.config.js", "Nuxt 配置"),
+        ("src/router/index.ts", "页面路由"),
+        ("src/router/index.js", "页面路由"),
         ("src/main.rs", "应用入口"),
         ("cmd/main.go", "应用入口"),
     ]
@@ -630,6 +755,10 @@ def _manifest_key_files(root: Path) -> list[dict[str, str]]:
         p = root / rel
         if p.is_file() and rel not in seen:
             out.append({"path": rel, "role": role})
+            seen.add(rel)
+    for rel in _scan_vue_route_files(root):
+        if rel not in seen:
+            out.append({"path": rel, "role": "页面路由"})
             seen.add(rel)
     for rel in _scan_controller_files(root):
         if rel not in seen:
@@ -650,6 +779,10 @@ def _capability_entries(root: Path, model: ProjectModel, key_files: list[dict[st
         "Docker": "Dockerfile",
         "Docker Compose": "docker-compose.yml",
         "Spring Boot": "pom.xml",
+        "Vue 3": "package.json",
+        "Vue 2": "package.json",
+        "Nuxt": "package.json",
+        "Vite": "vite.config.ts",
     }
     for stack in model.stacks:
         rel = marker_files.get(stack, "")
@@ -661,10 +794,18 @@ def _capability_entries(root: Path, model: ProjectModel, key_files: list[dict[st
                 if (root / n).is_file():
                     files = [n]
                     break
+        if stack == "Vite" and not files:
+            for n in ("vite.config.js", "vite.config.mts", "vite.config.mjs"):
+                if (root / n).is_file():
+                    files = [n]
+                    break
         cap.append({"name": stack, "files": files})
     route_files = [k["path"] for k in key_files if k["role"] == "路由 / 控制器"]
     if route_files:
         cap.append({"name": "HTTP / 路由", "files": route_files[:12]})
+    page_files = [k["path"] for k in key_files if k["role"] == "页面路由"]
+    if page_files:
+        cap.append({"name": "页面路由", "files": page_files[:12]})
     for ext in model.externals:
         cap.append({"name": ext, "files": []})
     return cap
@@ -965,6 +1106,7 @@ _MAP_SUFFIXES = {
     ".json",
     ".kts",
     ".gradle",
+    ".vue",
 }
 
 
@@ -988,6 +1130,11 @@ _DIR_HINTS = {
     "api": "接口层",
     "server": "服务端",
     "client": "客户端",
+    "components": "Vue 组件",
+    "views": "页面视图",
+    "pages": "页面路由",
+    "composables": "组合式函数",
+    "stores": "状态仓库",
 }
 
 _FILE_HINTS = {
@@ -1001,6 +1148,10 @@ _FILE_HINTS = {
     "dockerfile": "容器构建",
     "docker-compose.yml": "编排",
     "docker-compose.yaml": "编排",
+    "app.vue": "根组件",
+    "vite.config.ts": "Vite 配置",
+    "vite.config.js": "Vite 配置",
+    "nuxt.config.ts": "Nuxt 配置",
 }
 
 _EXT_HINTS = {
@@ -1016,6 +1167,7 @@ _EXT_HINTS = {
     ".yaml": "YAML 配置",
     ".json": "JSON",
     ".xml": "XML",
+    ".vue": "Vue 单文件组件",
 }
 
 

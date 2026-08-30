@@ -1,3 +1,8 @@
+---
+name: "pm-fix"
+description: "PM Manager /pm-fix"
+---
+
 ﻿---
 description: Triage pasted logs/stacks into bugs findings and todos. Does not change application code unless the user confirms.
 handoffs:
@@ -19,7 +24,7 @@ $ARGUMENTS
 
 1. Prefer **current conversation paste** as evidence (first-class; no need to save a file first); else `--path` / sources / `.pm/inbox/stacks/`.
 2. Desensitize; write evidence JSON; optionally copy redacted snippet to inbox. Never persist secret originals.
-3. Classify severity (blocking/high/medium/low/suggestion).
+3. Classify severity (blocking/high/medium/low/suggestion). Vue / Vite 白屏、`Vue warn`、Pinia、路由失败按同样规则分诊，不改代码。
 4. Append `bugs/findings.md` + `state/todo.md` entry with next action.
 5. Charter compare for availability/success criteria with confidence **only if charter.status=approved**.
 6. Persist a desensitized dialogue note via **`pm log --kind fix`** (intent + files the user named; else `unresolved` — never invent paths). Then `pm journal` if you need the timeline.

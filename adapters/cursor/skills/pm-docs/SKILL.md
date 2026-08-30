@@ -1,4 +1,5 @@
 ---
+name: "pm-docs"
 description: Detect missing/stale core docs; dual-mode fill (user upload or AI draft under .pm/docs/drafts). Confirm before writing official paths.
 handoffs:
   - label: Status

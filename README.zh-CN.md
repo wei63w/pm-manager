@@ -18,6 +18,7 @@
 
 - [PM Manager 是什么](#pm-manager-是什么)
 - [快速开始](#快速开始)
+- [Vue 前端项目](#vue-前端项目)
 - [CLI 参考](#cli-参考)
 - [支持的 AI 编程助手](#支持的-ai-编程助手)
 - [斜杠命令](#斜杠命令)
@@ -113,6 +114,18 @@ pm check
 ```
 
 > Windows / macOS / Linux 命令相同。`scripts/powershell/` 下的旧 PowerShell 脚本仍可用，但**优先用** `pm init`。
+
+### Vue 前端项目
+
+若业务仓库 `package.json` 的依赖含 `vue` 或 `nuxt`，`pm init` 仍走原 Python 路径，并**额外**写入前端默认值（关掉 database/operations/cost 模块，填入 Vue/Vite 栈信息）。`.vue` 会进入架构地图；请求流按 Vue Router 画，不再用 API 网关图。
+
+没有 Python 时，可以只搭脚手架：
+
+```bash
+npx @wei63w/pm-manager init
+```
+
+然后在同一仓库打开 Cursor，运行 `/pm-init`。架构地图、评审草稿和 HTML 看板仍由 Python CLI 的 `pm arch` / `pm review` / `pm dashboard` 提供。
 
 ### 4. 在助手里初始化治理
 
@@ -316,6 +329,7 @@ pm-manager/
     memory/ROUTING.md            # 自然语言 → 命令映射
   scripts/python/                # 薄封装（优先用 pm init）
   scripts/powershell/            # 旧版 Windows 辅助脚本
+  packages/npx-cli/              # 可选 Node init（`npx @wei63w/pm-manager init`）
   adapters/cursor/               # Cursor 技能变体
   adapters/claude-code/          # Claude Code 命令文件
   skills.sh.json                 # skills.sh 分组

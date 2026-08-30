@@ -1,0 +1,21 @@
+{
+  "name": "@wei63w/pm-manager",
+  "version": "0.1.0",
+  "description": "Optional Node init for PM Manager (.pm/ scaffold). Does not replace the Python CLI.",
+  "type": "module",
+  "bin": {
+    "pm-manager": "./bin/pm-manager.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wei63w/pm-manager.git",
+    "directory": "packages/npx-cli"
+  }
+}

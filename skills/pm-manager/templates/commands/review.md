@@ -27,7 +27,8 @@ Accepted extra words: `confirm REV-xxx` | `false_positive REV-xxx` | `later REV-
 4. 只润色或补**合格**行（`summary` + `reasoning` + `snippet` + `severity` + `file`/`line`）。缺推理或片段禁止落盘。
 5. 建议再跑 **`pm review --cross`**，对照 `.pm/state/cross-review.md` 用另一套检查单（安全 vs 完成度/文档），禁止复制初评空话、禁止同一 snippet 再标 new。
 6. P0 打断。P1/P2 进报告。单测缺口只警告。
-7. 请用户回复 `confirm REV-xxx` / `false_positive REV-xxx` / `later REV-xxx`。回填用 `pm review annotate REV-xxx`（只写 `.pm/reviews/annotations/`）。
+7. **若当前仓库为 Vue**：额外核对 `v-html`（XSS）与 `v-for` 缺 `:key`；结论仍须推理链 + 片段。
+8. 请用户回复 `confirm REV-xxx` / `false_positive REV-xxx` / `later REV-xxx`。回填用 `pm review annotate REV-xxx`（只写 `.pm/reviews/annotations/`）。
 
 ### B. Disposition
 

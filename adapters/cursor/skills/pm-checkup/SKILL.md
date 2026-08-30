@@ -1,4 +1,5 @@
 ---
+name: "pm-checkup"
 description: On-demand five-dimension project checkup (security, function, completeness, quality, docs) with P0/P1/P2. No cron.
 handoffs:
   - label: Status

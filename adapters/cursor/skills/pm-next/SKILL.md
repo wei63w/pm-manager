@@ -1,4 +1,5 @@
 ---
+name: "pm-next"
 description: Claim the single next governance todo (marks in_progress).
 handoffs:
   - label: Mark done

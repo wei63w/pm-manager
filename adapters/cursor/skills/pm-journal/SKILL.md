@@ -1,4 +1,5 @@
 ---
+name: "pm-journal"
 description: Persist this session's intent, extract change points, refresh the iteration timeline, and list optimization suggestions.
 handoffs:
   - label: Status

@@ -1,4 +1,5 @@
 ---
+name: "pm-charter"
 description: Create, import, discover, approve, or skip project charter. No-arg form is an interactive wizard.
 handoffs:
   - label: Re-compare

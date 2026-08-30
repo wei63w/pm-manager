@@ -1,3 +1,8 @@
+---
+name: "pm-discover"
+description: "PM Manager /pm-discover"
+---
+
 ﻿---
 description: Internal module deep-scan used by /pm-all. Do not recommend this command to users.
 handoffs:

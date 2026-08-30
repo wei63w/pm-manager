@@ -1,3 +1,8 @@
+---
+name: "pm-arch"
+description: "PM Manager /pm-arch"
+---
+
 ﻿---
 description: Scan project structure and generate Mermaid architecture diagrams + flowcharts under .pm/architecture/.
 handoffs:
@@ -25,7 +30,7 @@ $ARGUMENTS
    - `.pm/architecture/system-context.mmd` / `service-dependencies.mmd` / `request-flow.mmd` / `deploy-flow.mmd`
    - `.pm/architecture/scan.json`
 4. If a valid `map.json` already exists and nothing changed, CLI reuses the map (timestamp only). Skip `node_modules`, build, logs, and `scan.exclude_dirs`.
-4. If CLI is unavailable, generate the same files yourself by scanning (still skip ignore dirs; isolate per-file read failures).
+4. If CLI is unavailable, generate the same files yourself by scanning (still skip ignore dirs; isolate per-file read failures). **If the repo is Vue** (`vue`/`nuxt` in package.json deps): include `.vue` files; draw Browser → Vue Router → Page → Component → API (not API Gateway); layer by pages/views, components, composables/stores, api. Non-Vue repos keep the existing heuristics.
 5. Review diagrams: fix wrong edges, rename nodes, add missing externals. Prefer editing the `.mmd` files then refreshing the Mermaid blocks in `overview.md`.
 6. Optional charter compare: mark out-of-scope services or missing in-scope capabilities in `architecture/findings.md` (with confidence) **only if charter is approved**.
 7. Default: write only under `.pm/architecture/`. If the user asks to land diagrams in the application tree, show the draft and **wait for confirm**.

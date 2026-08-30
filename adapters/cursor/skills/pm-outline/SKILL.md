@@ -1,4 +1,5 @@
 ---
+name: "pm-outline"
 description: Generate detailed project outline and draft charter from user intent (empty/new projects).
 handoffs:
   - label: Approve charter

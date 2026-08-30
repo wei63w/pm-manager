@@ -1,4 +1,5 @@
 ---
+name: "pm-tests"
 description: List missing unit-test companions for core/changed sources. Do not write tests into the business tree unless the user confirms.
 handoffs:
   - label: Status

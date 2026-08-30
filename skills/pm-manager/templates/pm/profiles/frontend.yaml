@@ -7,4 +7,15 @@ review:
 checkup:
   enabled: false
 scan:
-  exclude_dirs: [node_modules, dist, build, .next, .nuxt, coverage, .git, .pm]
+  exclude_dirs: [node_modules, dist, build, .next, .nuxt, .output, coverage, .git, .pm]
+modules:
+  bugs: true
+  architecture: true
+  engineering: true
+  environments: true
+  integration: true
+  testing: true
+  release: true
+  database: false
+  operations: false
+  cost: false

@@ -10,6 +10,7 @@
 | what's next / 认领下一条 | `/pm-next` |
 | this is done / 关闭 TODO-xxx | `/pm-done` |
 | help me with this error + paste / 贴报错 | `/pm-fix` |
+| 白屏 / Vite 报错 / Vue warn / Pinia / 路由失败 | `/pm-fix` |
 | full check / 发布前扫描 / health scan | `/pm-all` |
 | review this diff / 评审改动 / 确认误报 | `/pm-review` |
 | checkup / 体检 / 全量质量 / 分级建议 | `/pm-checkup` |

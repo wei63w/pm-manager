@@ -8,7 +8,7 @@ from pathlib import Path
 from pm_manager_cli.architecture import load_map
 from pm_manager_cli.redact import redact
 
-_SOURCE_SUFFIXES = {".py", ".java", ".kt", ".ts", ".tsx", ".js", ".jsx", ".go", ".rs"}
+_SOURCE_SUFFIXES = {".py", ".java", ".kt", ".ts", ".tsx", ".js", ".jsx", ".go", ".rs", ".vue"}
 _SKIP_PARTS = {
     "test",
     "tests",
@@ -90,7 +90,7 @@ def suggested_test_path(rel: str) -> str:
     stem = p.stem
     if suf == ".py":
         return f"tests/test_{stem}.py"
-    if suf in {".ts", ".tsx"}:
+    if suf in {".ts", ".tsx", ".vue"}:
         return str(p.with_name(f"{stem}.spec.ts")).replace("\\", "/")
     if suf in {".js", ".jsx"}:
         return str(p.with_name(f"{stem}.spec.js")).replace("\\", "/")
@@ -117,6 +117,8 @@ def _has_companion(root: Path, rel: str) -> bool:
         p.parent / f"{stem}_test{suf}",
         p.parent / f"{stem}.spec{suf}",
         p.parent / f"{stem}.test{suf}",
+        p.parent / f"{stem}.spec.ts",
+        p.parent / f"{stem}.test.ts",
         p.parent / f"test_{stem}{suf}",
     ]
     if any(g.is_file() for g in guesses):
@@ -154,11 +156,17 @@ def write_test_gaps(project_root: Path) -> tuple[Path, list[dict[str, object]]]:
     if not pm.is_dir():
         raise FileNotFoundError(f"缺少 .pm/（{root}）；请先运行 `pm init`")
     gaps = find_test_gaps(root)
+    from pm_manager_cli.vue_detect import has_dep
+
     lines = [
         "# 单元测试缺口",
         "",
         f"> 更新: {_now()}",
         "> 只提示建议落点，不写业务树测试文件。",
+    ]
+    if has_dep(root, "vitest"):
+        lines.append("> 检测到 Vitest，建议配套 `*.spec.ts` / `*.test.ts`。")
+    lines += [
         "",
         "| 源文件 | 建议测试 | 本轮变更 |",
         "|--------|----------|----------|",
