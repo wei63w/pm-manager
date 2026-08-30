@@ -55,6 +55,7 @@ def scaffold(project_root: Path) -> Path:
     (pm / "state").mkdir(parents=True, exist_ok=True)
     (pm / "charter").mkdir(parents=True, exist_ok=True)
     (pm / "outline").mkdir(parents=True, exist_ok=True)
+    (pm / "prd").mkdir(parents=True, exist_ok=True)
     (pm / "inbox" / "stacks").mkdir(parents=True, exist_ok=True)
     (pm / "evidence" / "scans").mkdir(parents=True, exist_ok=True)
     (pm / "bugs" / "incidents").mkdir(parents=True, exist_ok=True)
@@ -73,6 +74,8 @@ def scaffold(project_root: Path) -> Path:
 
     for name in ("project-outline.md", "epics.md", "milestones.md"):
         _copy_if_missing(tpl / "outline" / name, pm / "outline" / name)
+
+    _copy_if_missing(tpl / "prd" / "prd.md", pm / "prd" / "prd.md")
 
     for mod in MODULES:
         d = pm / mod
@@ -103,6 +106,26 @@ def scaffold(project_root: Path) -> Path:
 
     (pm / "evidence" / "scans" / ".gitkeep").write_text("", encoding="utf-8")
     (pm / "dashboard").mkdir(parents=True, exist_ok=True)
+    (pm / "engineering").mkdir(parents=True, exist_ok=True)
+    _copy_if_missing(tpl / "engineering" / "reviews.md", pm / "engineering" / "reviews.md")
+    _copy_if_missing(tpl / "engineering" / "rules.md", pm / "engineering" / "rules.md")
+    doc_index = pm / "state" / "doc-index.md"
+    if not doc_index.exists():
+        src_idx = tpl / "doc-index.md"
+        if src_idx.is_file():
+            _copy_if_missing(src_idx, doc_index)
+        else:
+            doc_index.write_text(
+                "# Document index\n\n_Fill via `/pm-init` core-doc check._\n",
+                encoding="utf-8",
+            )
+    audit = pm / "state" / "audit.jsonl"
+    if not audit.exists():
+        audit.write_text("", encoding="utf-8")
+    dialogue = pm / "state" / "dialogue.md"
+    if not dialogue.exists():
+        dialogue.write_text("# Dialogue notes\n\n", encoding="utf-8")
+    # Never modify a shared .gitignore — local exclude only (constitution I).
     ensure_git_exclude(project_root)
 
     # Initial empty dashboard aggregate

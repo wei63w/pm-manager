@@ -17,7 +17,7 @@ Optional: `--peek` (do not mark in_progress).
 ## Outline
 
 1. Require init. Read `state/todo.md`.
-2. Pick first Top3-ordered open/in_progress item.
+2. Pick the first open/in_progress item ordered by blocking>high, then P0>P1 (no 3-item cap).
 3. Unless `--peek`, set status `in_progress` in state + module mirror.
 4. Print task, evidence link, suggested action; remind `/pm-done TODO-id`.
 
@@ -27,11 +27,13 @@ Optional: `--peek` (do not mark in_progress).
 Follow this order when the command mutates `.pm/` state:
 
 1. Read `.pm/config/project.yaml` and `.pm/config/local.yaml` (if missing and command is not init → recommend `/pm-init`).
-2. On-demand scan using `sources` + `extra_scan_roots` + `--path` + **conversation paste** (highest priority for `/pm-fix`).
-3. Desensitize evidence → `.pm/evidence/scans/{command}-{timestamp}.json` (secrets → `***`).
-4. Optional charter compare when `charter.status != absent` (attach `confidence`).
+2. If `.pm/` metadata is valid, load it; do **not** force a full-repo rescan. On-demand **incremental** scan using `sources` + `extra_scan_roots` + `--path` + **conversation paste** (highest priority for `/pm-fix`). Prefer `.pm/architecture/map.json` and the document index before walking the tree.
+3. Desensitize evidence → `.pm/evidence/scans/{command}-{timestamp}.json` (secrets → `***`). Never persist raw secrets.
+4. Optional charter compare only when `charter.status == approved` (attach `confidence`). Draft PRD/charter MUST NOT be used as the baseline.
 5. Incremental merge into module `findings.md` / `todo.md`; sync authoritative `state/todo.md`.
-6. Refresh `state/overview.md` (include **Today's Top3**, max 3, blocking+high by default).
-7. Output risk summary + recommended next step (≤20 lines). Never auto-write source/SQL/cloud without confirmation.
+6. Refresh `state/overview.md` with **all** open/in_progress blocking+high todos (no 3-item cap). Medium/low: counts only unless `--verbose`.
+7. Append audit to `.pm/state/audit.jsonl` (command, time, input/output summary; include reasoning when the step was AI-produced).
+8. Output risk summary + recommended next step (≤20 lines). Never auto-write source/SQL/cloud or land generated docs/rules without explicit user confirmation.
+9. **Closing (required):** end with Summary + Open these links per `templates/commands/_closing.md`. Ask the user to open them.
 
 Design baseline: repo root `pm-manager-v2.md` (or packaged copy under `memory/`).

@@ -242,6 +242,18 @@ def collect(pm_root: Path) -> tuple[list[Finding], list[Todo], list[str]]:
     return findings, list(by_id.values()), scanned
 
 
+def hot_open_todos(pm_root: Path) -> list[Todo]:
+    """Open/in_progress todos at blocking (P0) or high (P1). No 3-item cap."""
+    _findings, todos, _scanned = collect(pm_root)
+    hot = [
+        t
+        for t in todos
+        if t.status in {"open", "in_progress"} and t.priority.upper() in {"P0", "P1"}
+    ]
+    hot.sort(key=lambda t: (0 if t.priority.upper() == "P0" else 1, t.id))
+    return hot
+
+
 def module_risk_score(sev_counts: dict[str, int], open_todos: int) -> int:
     score = sum(
         sev_counts.get(sev, 0) * SEVERITY_WEIGHT[sev] for sev in SEVERITY_ORDER

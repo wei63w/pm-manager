@@ -14,9 +14,9 @@
 - This run: technical scan | technical scan + charter compare
 - Charter re-compare needed: no
 
-## Today's Top3
+## Open blocking / high todos
 
-1. (no open todos — run `/pm-all` or `/pm-fix`)
+1. (no open blocking/high todos — run `/pm-all` or `/pm-fix`)
 
 ## Blocking items
 

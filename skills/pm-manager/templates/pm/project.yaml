@@ -21,6 +21,14 @@ charter:
 outline:
   status: absent
   source: none
+speckit:
+  present: false
+  constitution: ""
+  specs: []
+prd:
+  status: absent
+  source: none
+  path: ".pm/prd/prd.md"
 charter_candidates:
   - path: ".specify/memory/constitution.md"
     kind: speckit-constitution
@@ -71,7 +79,6 @@ rules:
   incremental_merge: true
   charter_compare: true
   default_noise_filter: high
-  top_n: 3
 scan:
   exclude_dirs: [target, node_modules, .git, dist, build, .pm]
   max_file_size_kb: 512

@@ -1,9 +1,9 @@
 ---
 name: pm-manager
-description: "Project governance workbench (/pm-*). Use for /pm-init, /pm-status, /pm-next, /pm-done, /pm-fix, /pm-all, /pm-outline, /pm-charter, /pm-export, /pm-arch, project health Top3, pasted logs/stacks, Spec Kit constitution discovery, and local .pm governance. Triggers on project management, governance, what should I do today, help me with this error."
+description: "Project governance workbench (/pm-*). Use for /pm-init (Spec Kit detect or draft PRD for confirm), /pm-status, /pm-next, /pm-done, /pm-fix, /pm-all, /pm-outline, /pm-charter, /pm-export, /pm-arch, open blocking/high todos (no 3-item cap), pasted logs/stacks, and local .pm governance. Triggers on project management, governance, what should I do today, help me with this error."
 license: MIT
 metadata:
-  version: "0.0.6"
+  version: "0.0.7"
   author: wei63w
 ---
 
@@ -20,8 +20,8 @@ Spec-kit-inspired command pack for **local `.pm/` project governance**.
 
 1. Resolve command name from user message (see routing table in `memory/ROUTING.md`).
 2. Read the matching file under `templates/commands/<name>.md` and **follow it exactly**.
-3. For `/pm-init`, run `pm init <project-root>` (or `scripts/python/create_pm_scaffold.py`) before filling config.
-4. Keep daily UX simple: prefer status Top3; do not dump medium/low unless `--verbose`.
+3. For `/pm-init`, run `pm init <project-root>` (or `scripts/python/create_pm_scaffold.py`) before filling config. Then detect Spec Kit; if absent, draft `.pm/prd/prd.md` and **wait for user confirm**.
+4. Keep daily UX simple: `/pm-status` lists all open blocking+high todos (do **not** cap at 3); do not dump medium/low unless `--verbose`.
 5. Never commit `.pm/`; never print secrets.
 6. **Always end with a short Summary + Open these links** (see `templates/commands/_closing.md`). Tell the user to open the overview — do not assume they know `.pm/dashboard/` or `.pm/architecture/` exists.
 

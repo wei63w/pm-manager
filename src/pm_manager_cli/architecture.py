@@ -66,17 +66,44 @@ def _read(path: Path, limit: int = 200_000) -> str:
         return ""
 
 
+def _yaml_exclude_dirs(project_root: Path) -> set[str]:
+    cfg = project_root / ".pm" / "config" / "project.yaml"
+    extra: set[str] = set()
+    if not cfg.is_file():
+        return extra
+    try:
+        text = cfg.read_text(encoding="utf-8")
+    except OSError:
+        return extra
+    m = re.search(r"exclude_dirs:\s*\[([^\]]*)\]", text)
+    if not m:
+        return extra
+    return {x.strip() for x in m.group(1).split(",") if x.strip()}
+
+
+def _file_sig(path: Path) -> str:
+    st = path.stat()
+    return f"{st.st_mtime_ns}:{st.st_size}"
+
+
 def _iter_files(root: Path, suffixes: set[str], max_files: int = 400) -> list[Path]:
     out: list[Path] = []
-    for p in root.rglob("*"):
+    try:
+        iterator = root.rglob("*")
+    except OSError:
+        return out
+    for p in iterator:
         if len(out) >= max_files:
             break
-        if not p.is_file():
+        try:
+            if any(part in SKIP_DIRS for part in p.parts):
+                continue
+            if not p.is_file():
+                continue
+            if p.suffix.lower() in suffixes:
+                out.append(p)
+        except OSError:
             continue
-        if any(part in SKIP_DIRS for part in p.parts):
-            continue
-        if p.suffix.lower() in suffixes:
-            out.append(p)
     return out
 
 
@@ -475,10 +502,12 @@ def _overview_md(model: ProjectModel, diagrams: dict[str, str]) -> str:
             "```",
             "",
         ]
-    lines += [
+        lines += [
         "## Files",
         "",
         "- `overview.md` — this page",
+        "- `map.json` — AI navigation map",
+        "- `tree.md` — annotated directory tree",
         "- `system-context.mmd`",
         "- `service-dependencies.mmd`",
         "- `request-flow.mmd`",
@@ -490,6 +519,155 @@ def _overview_md(model: ProjectModel, diagrams: dict[str, str]) -> str:
     return "\n".join(lines)
 
 
+_MAP_SUFFIXES = {
+    ".py",
+    ".java",
+    ".kt",
+    ".ts",
+    ".js",
+    ".go",
+    ".rs",
+    ".md",
+    ".yml",
+    ".yaml",
+    ".xml",
+    ".json",
+    ".kts",
+    ".gradle",
+}
+
+
+_DIR_HINTS = {
+    "src": "业务源码",
+    "app": "应用入口",
+    "apps": "应用集合",
+    "lib": "库代码",
+    "cmd": "命令入口",
+    "docs": "文档",
+    "test": "测试",
+    "tests": "测试",
+    "scripts": "脚本",
+    "config": "配置",
+    "configs": "配置",
+    "deploy": "部署",
+    "infra": "基础设施",
+    "internal": "内部包",
+    "pkg": "包",
+    "web": "Web 前端",
+    "api": "接口层",
+    "server": "服务端",
+    "client": "客户端",
+}
+
+_FILE_HINTS = {
+    "readme.md": "项目说明",
+    "agents.md": "Agent 说明",
+    "pyproject.toml": "Python 包清单",
+    "package.json": "Node 清单",
+    "go.mod": "Go 模块",
+    "cargo.toml": "Rust 清单",
+    "pom.xml": "Maven 清单",
+    "dockerfile": "容器构建",
+    "docker-compose.yml": "编排",
+    "docker-compose.yaml": "编排",
+}
+
+_EXT_HINTS = {
+    ".py": "Python 源文件",
+    ".java": "Java 源文件",
+    ".kt": "Kotlin 源文件",
+    ".ts": "TypeScript 源文件",
+    ".js": "JavaScript 源文件",
+    ".go": "Go 源文件",
+    ".rs": "Rust 源文件",
+    ".md": "Markdown 文档",
+    ".yml": "YAML 配置",
+    ".yaml": "YAML 配置",
+    ".json": "JSON",
+    ".xml": "XML",
+}
+
+
+def _entry_hint(name: str, is_dir: bool) -> str:
+    key = name.lower()
+    if is_dir:
+        return _DIR_HINTS.get(key, "")
+    return _FILE_HINTS.get(key, "") or _EXT_HINTS.get(Path(name).suffix.lower(), "")
+
+
+def write_annotated_tree(
+    project_root: Path,
+    dest: Path,
+    *,
+    max_entries: int = 400,
+    max_depth: int = 4,
+) -> Path:
+    """Write a skipped-ignore annotated directory tree. Does not walk SKIP_DIRS."""
+    root = project_root.resolve()
+    lines = [
+        "# 带注解目录树",
+        "",
+        f"项目: `{root.name}`",
+        f"生成: {datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}",
+        "说明: 已跳过 `node_modules`、构建产物、`.git`、`.pm` 等忽略目录。标注为启发式，供导航。",
+        "",
+        "```",
+        f"{root.name}/",
+    ]
+    count = 0
+
+    def walk(dir_path: Path, prefix: str, depth: int) -> None:
+        nonlocal count
+        if count >= max_entries or depth > max_depth:
+            return
+        try:
+            children = sorted(dir_path.iterdir(), key=lambda p: (not p.is_dir(), p.name.lower()))
+        except OSError:
+            return
+        visible: list[Path] = []
+        for child in children:
+            if child.name in SKIP_DIRS:
+                continue
+            visible.append(child)
+        for i, child in enumerate(visible):
+            if count >= max_entries:
+                lines.append(f"{prefix}…")
+                return
+            last = i == len(visible) - 1
+            branch = "└── " if last else "├── "
+            child_prefix = prefix + ("    " if last else "│   ")
+            try:
+                is_dir = child.is_dir()
+            except OSError:
+                continue
+            hint = _entry_hint(child.name, is_dir)
+            label = f"{child.name}/" if is_dir else child.name
+            suffix = f"  — {hint}" if hint else ""
+            lines.append(f"{prefix}{branch}{label}{suffix}")
+            count += 1
+            if is_dir:
+                walk(child, child_prefix, depth + 1)
+
+    walk(root, "", 1)
+    lines += ["```", ""]
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text("\n".join(lines), encoding="utf-8")
+    return dest
+
+
+def _collect_file_hashes(root: Path) -> tuple[dict[str, str], list[str]]:
+    """Return (relpath→sig, notes for unreadable files)."""
+    hashes: dict[str, str] = {}
+    notes: list[str] = []
+    for p in _iter_files(root, _MAP_SUFFIXES, max_files=4000):
+        try:
+            rel = p.relative_to(root).as_posix()
+            hashes[rel] = _file_sig(p)
+        except OSError as exc:
+            notes.append(f"skip unreadable: {p} ({exc})")
+    return hashes, notes
+
+
 def write_architecture(project_root: Path) -> tuple[Path, ProjectModel]:
     """Analyze project and write diagrams under `.pm/architecture/`. Returns (arch_dir, model)."""
     project_root = project_root.resolve()
@@ -497,31 +675,76 @@ def write_architecture(project_root: Path) -> tuple[Path, ProjectModel]:
     if not pm.is_dir():
         raise FileNotFoundError(f"Missing .pm/ under {project_root}; run `pm init` first")
 
-    model = analyze_project(project_root)
-    arch = pm / "architecture"
-    arch.mkdir(parents=True, exist_ok=True)
+    extra = _yaml_exclude_dirs(project_root)
+    added = extra - SKIP_DIRS
+    SKIP_DIRS.update(added)
+    try:
+        old_hashes: dict[str, str] = {}
+        arch = pm / "architecture"
+        map_path = arch / "map.json"
+        if map_path.is_file():
+            try:
+                old = json.loads(map_path.read_text(encoding="utf-8"))
+                old_hashes = old.get("file_hashes") or {}
+            except (OSError, json.JSONDecodeError):
+                old_hashes = {}
 
-    diagrams = {
-        "system-context.mmd": _system_context_mmd(model),
-        "service-dependencies.mmd": _service_deps_mmd(model),
-        "request-flow.mmd": _request_flow_mmd(model),
-        "deploy-flow.mmd": _deploy_flow_mmd(model),
-    }
-    for name, body in diagrams.items():
-        (arch / name).write_text(body, encoding="utf-8")
-    (arch / "overview.md").write_text(_overview_md(model, diagrams), encoding="utf-8")
+        hashes, read_notes = _collect_file_hashes(project_root)
+        changed = sorted(p for p, sig in hashes.items() if old_hashes.get(p) != sig)
+        if old_hashes:
+            changed += sorted(p for p in old_hashes if p not in hashes)
+            changed = sorted(set(changed))
 
-    meta = {
-        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "project": model.name,
-        "stacks": model.stacks,
-        "modules": model.modules,
-        "services": model.services,
-        "controllers": model.controllers,
-        "externals": model.externals,
-        "notes": model.notes,
-    }
-    (arch / "scan.json").write_text(
-        json.dumps(meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
-    return arch, model
+        model = analyze_project(project_root)
+        model.notes.extend(read_notes)
+        if old_hashes:
+            model.notes.append(f"incremental: {len(changed)} path(s) changed")
+        else:
+            model.notes.append("full scan")
+
+        arch.mkdir(parents=True, exist_ok=True)
+
+        diagrams = {
+            "system-context.mmd": _system_context_mmd(model),
+            "service-dependencies.mmd": _service_deps_mmd(model),
+            "request-flow.mmd": _request_flow_mmd(model),
+            "deploy-flow.mmd": _deploy_flow_mmd(model),
+        }
+        for name, body in diagrams.items():
+            (arch / name).write_text(body, encoding="utf-8")
+        (arch / "overview.md").write_text(_overview_md(model, diagrams), encoding="utf-8")
+
+        meta = {
+            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "project": model.name,
+            "stacks": model.stacks,
+            "modules": model.modules,
+            "services": model.services,
+            "controllers": model.controllers,
+            "externals": model.externals,
+            "notes": model.notes,
+        }
+        (arch / "scan.json").write_text(
+            json.dumps(meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+
+        nav_map = {
+            "generated_at": meta["generated_at"],
+            "modules": [
+                {"name": m, "path": m, "responsibility": ""} for m in model.modules
+            ],
+            "key_files": list(model.controllers[:24]),
+            "capabilities": list(model.stacks) + list(model.services),
+            "hotspots": list(model.controllers[:8]),
+            "excludes_applied": sorted(SKIP_DIRS),
+            "file_hashes": hashes,
+            "changed_paths": changed if old_hashes else sorted(hashes),
+            "notes": model.notes,
+        }
+        map_path.write_text(
+            json.dumps(nav_map, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+        write_annotated_tree(project_root, arch / "tree.md")
+        return arch, model
+    finally:
+        SKIP_DIRS.difference_update(added)

@@ -1,5 +1,5 @@
 ﻿---
-description: Close a todo (TODO-xxx), sync completed.md, refresh overview Top3.
+description: Close a todo (TODO-xxx), sync completed.md, refresh overview.
 handoffs:
   - label: Status
     agent: pm.status
@@ -21,7 +21,7 @@ Usage: `TODO-001` | `TODO-001 --note "..."` | `TODO-001 --start` (only in_progre
 2. `--start` → `in_progress` only.
 3. Else → `done`, append to `state/completed.md` and module `completed.md`, remove/mark done in state todo.
 4. If linked finding has no other open todos → `resolved`.
-5. Refresh overview; confirm item left Top3.
+5. Refresh overview; confirm the item is no longer in the open blocking/high list.
 
 
 ## Shared Workflow (all /pm-* commands)
@@ -29,13 +29,13 @@ Usage: `TODO-001` | `TODO-001 --note "..."` | `TODO-001 --start` (only in_progre
 Follow this order when the command mutates `.pm/` state:
 
 1. Read `.pm/config/project.yaml` and `.pm/config/local.yaml` (if missing and command is not init → recommend `/pm-init`).
-2. On-demand scan using `sources` + `extra_scan_roots` + `--path` + **conversation paste** (highest priority for `/pm-fix`).
-3. Desensitize evidence → `.pm/evidence/scans/{command}-{timestamp}.json` (secrets → `***`).
-4. Optional charter compare when `charter.status != absent` (attach `confidence`).
+2. If `.pm/` metadata is valid, load it; do **not** force a full-repo rescan. On-demand **incremental** scan using `sources` + `extra_scan_roots` + `--path` + **conversation paste** (highest priority for `/pm-fix`). Prefer `.pm/architecture/map.json` and the document index before walking the tree.
+3. Desensitize evidence → `.pm/evidence/scans/{command}-{timestamp}.json` (secrets → `***`). Never persist raw secrets.
+4. Optional charter compare only when `charter.status == approved` (attach `confidence`). Draft PRD/charter MUST NOT be used as the baseline.
 5. Incremental merge into module `findings.md` / `todo.md`; sync authoritative `state/todo.md`.
-6. Refresh `state/overview.md` (include **Today's Top3**, max 3, blocking+high by default).
-7. Output risk summary + recommended next step (≤20 lines). Never auto-write source/SQL/cloud without confirmation.
-
-9. **Closing (required):** end the user-facing reply with Summary + Open these links per `templates/commands/_closing.md` (dashboard and/or architecture overviews). Ask the user to open them.
+6. Refresh `state/overview.md` with **all** open/in_progress blocking+high todos (no 3-item cap). Medium/low: counts only unless `--verbose`.
+7. Append audit to `.pm/state/audit.jsonl` (command, time, input/output summary; include reasoning when the step was AI-produced).
+8. Output risk summary + recommended next step (≤20 lines). Never auto-write source/SQL/cloud or land generated docs/rules without explicit user confirmation.
+9. **Closing (required):** end with Summary + Open these links per `templates/commands/_closing.md`. Ask the user to open them.
 
 Design baseline: repo root `pm-manager-v2.md` (or packaged copy under `memory/`).

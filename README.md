@@ -1,3 +1,5 @@
+**English** | [简体中文](./README.zh-CN.md)
+
 **📋 PM Manager**  
 *Know what to fix next — with any AI coding agent.*
 
@@ -8,36 +10,30 @@
 [![License](https://img.shields.io/github/license/wei63w/pm-manager)](https://github.com/wei63w/pm-manager/blob/main/LICENSE)
 [![skills.sh](https://skills.sh/b/wei63w/pm-manager)](https://skills.sh/wei63w/pm-manager)
 
-An open source skill pack for **local project governance** — init a `.pm/` workbench, keep a daily Top3, triage pasted logs, and run release-ready health scans. Inspired by [Spec Kit](https://github.com/github/spec-kit)’s command-template + multi-agent adapter model. Works alongside Spec Kit: Spec Kit drives *what to build*; PM Manager drives *project health and what’s next*.
-
-
+An open source skill pack for **local project governance** — init a `.pm/` workbench, see today's open todos, triage pasted logs, and run release-ready health scans. Inspired by [Spec Kit](https://github.com/github/spec-kit)’s command-template + multi-agent adapter model. Works alongside Spec Kit: Spec Kit drives *what to build*; PM Manager drives *project health and what’s next*.
 
 ---
 
-
-
 ## Table of Contents
 
-- [What is PM Manager?](#-what-is-pm-manager)
-- [Get Started](#-get-started)
-- [CLI Reference](#-cli-reference)
-- [Supported AI Coding Agents](#-supported-ai-coding-agents)
-- [Available Slash Commands](#-available-slash-commands)
-- [How it relates to Spec Kit](#-how-it-relates-to-spec-kit)
-- [Core Philosophy](#-core-philosophy)
-- [Daily Workflow](#-daily-workflow)
-- [Repository Layout](#-repository-layout)
-- [Prerequisites](#-prerequisites)
-- [Support](#-support)
-- [License](#-license)
-
-
+- [What is PM Manager?](#what-is-pm-manager)
+- [Get Started](#get-started)
+- [CLI Reference](#cli-reference)
+- [Supported AI Coding Agents](#supported-ai-coding-agents)
+- [Available Slash Commands](#available-slash-commands)
+- [How it relates to Spec Kit](#how-it-relates-to-spec-kit)
+- [Core Philosophy](#core-philosophy)
+- [Daily Workflow](#daily-workflow)
+- [Repository Layout](#repository-layout)
+- [Prerequisites](#prerequisites)
+- [Support](#support)
+- [License](#license)
 
 ## What is PM Manager?
 
-Most AI coding sessions jump straight into code. **PM Manager flips the day-to-day loop**: keep a local, auditable `.pm/` board for health, todos, incidents, and release gates — then let the agent recommend **at most three things to do today**.
+Most AI coding sessions jump straight into code. **PM Manager flips the day-to-day loop**: keep a local, auditable `.pm/` board for health, todos, incidents, and release gates — then let the agent show **today’s open blocking and high-priority work**.
 
-It is **not** a cloud PM suite and **not** a replacement for Jira/Linear. It is a **developer-side governance workbench** that lives in your repo’s local `.pm/` directory (git-excluded), driven by slash commands / skills the same way Spec Kit drives `/speckit.`*.
+It is **not** a cloud PM suite and **not** a replacement for Jira/Linear. It is a **developer-side governance workbench** that lives in your repo’s local `.pm/` directory (git-excluded), driven by slash commands / skills the same way Spec Kit drives `/speckit.*`.
 
 ## Get Started
 
@@ -83,8 +79,6 @@ uv tool upgrade pm-manager-cli
 uv tool install pm-manager-cli --force --from git+https://github.com/wei63w/pm-manager.git
 ```
 
-
-
 ### 3. Bootstrap a project
 
 In your **application** repository (not required to keep this pack checked out):
@@ -120,8 +114,6 @@ pm check
 
 > Windows / macOS / Linux all use the same commands. Legacy PowerShell helpers under `scripts/powershell/` still work, but `pm init` **is preferred**.
 
-
-
 ### 4. Initialize governance in your agent
 
 Open Cursor / Claude Code in the project and run:
@@ -130,20 +122,19 @@ Open Cursor / Claude Code in the project and run:
 /pm-init
 ```
 
-- Detects **new vs existing** projects  
-- Discovers Spec Kit `.specify/memory/constitution.md` (and other charter candidates) when present  
-- For empty projects, accepts a one-line intent to generate an outline  
-- Complements the filesystem scaffold from `pm init` (agent fills charter/overview)
+- Detects **new vs existing** projects
+- Checks whether the repo already uses **Spec Kit** (`.specify/memory/constitution.md` or `.specify/specs/**/*.md`)
+- If Spec Kit is present: imports constitution/specs and asks you to confirm
+- If Spec Kit is **not** present: analyzes the repo (or a one-line intent on an empty repo) and drafts `.pm/prd/prd.md` for **your confirmation**
+- Complements the filesystem scaffold from `pm init` (agent fills the PRD / charter)
 
-
-
-### 5. Check today's Top3
+### 5. Check today's status
 
 ```text
 /pm-status
 ```
 
-You’ll get a short health line and **up to three** actionable todos. Claim one with `/pm-next`, close it with `/pm-done TODO-001`.
+You’ll get a short health line and the open blocking/high todos (or run `pm status` without an agent). Claim one with `/pm-next`, close it with `/pm-done TODO-001`.
 
 ### 6. Triage an incident
 
@@ -167,113 +158,99 @@ After the scan, open **`.pm/dashboard/index.html`** in a browser for the visual 
 
 ## CLI Reference
 
-
-| Command                                  | Description                            |
-| ---------------------------------------- | -------------------------------------- |
-| `pm version`                             | Print CLI version                      |
-| `pm init [path]`                         | Create `.pm/` + install agent adapters (+ skills.sh) |
-| `pm init --agent cursor|claude|all|none` | Choose which adapters to install       |
-| `pm init --scaffold-only`                | Only create `.pm/`                     |
-| `pm init --no-skills-sh`                 | Skip `npx skills add wei63w/pm-manager` |
-| `pm install --agent …`                   | Refresh adapters without scaffolding   |
-| `pm install --no-skills-sh`              | Refresh adapters only                  |
-| `pm check [path]`                        | Show whether `.pm/` and adapters exist |
-| `pm dashboard [path]`                    | Rebuild `.pm/dashboard/` from module findings/todos |
-| `pm arch [path]`                         | Scan project → Mermaid diagrams under `.pm/architecture/` |
-
+| Command | Description |
+|---------|-------------|
+| `pm version` | Print CLI version |
+| `pm init [path]` | Create `.pm/` + install agent adapters (+ skills.sh) |
+| `pm init --agent cursor\|claude\|all\|none` | Choose which adapters to install |
+| `pm init --scaffold-only` | Only create `.pm/` |
+| `pm init --no-skills-sh` | Skip `npx skills add wei63w/pm-manager` |
+| `pm install --agent …` | Refresh adapters without scaffolding |
+| `pm install --no-skills-sh` | Refresh adapters only |
+| `pm check [path]` | Show `.pm/`, adapters, map, audit, doc index, `prd.status` |
+| `pm docs [path]` | Detect missing core docs; update `.pm/state/doc-index.md` (does not generate bodies) |
+| `pm status [path]` | List all open blocking/high todos (read-only, no 3-item cap) |
+| `pm dashboard [path]` | Rebuild `.pm/dashboard/` from module findings/todos |
+| `pm arch [path]` | Scan → Mermaid, `map.json`, annotated `tree.md` |
+| `pm export [path]` | Time-window desensitized audit Markdown (`--from` / `--to` / `--out`) |
 
 `pm-manager` is an alias of `pm`.
 
 ## Supported AI Coding Agents
 
-
-| Agent                 | Install path                                                                               | How you invoke                                            |
-| --------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
-| **Cursor**            | `.cursor/skills/pm-manager` (+ optional per-command skills under `adapters/cursor/skills`) | `/pm-init`, `/pm-status`, … or natural language ("what should I do today") |
-| **Claude Code**       | `.claude/commands/pm-*.md`                                                                 | `/pm-init`, `/pm-status`, …                               |
-| **Other skill hosts** | Use `skills/pm-manager/SKILL.md` as a router into `templates/commands/`                    | Follow host skill conventions                             |
-
+| Agent | Install path | How you invoke |
+|-------|--------------|----------------|
+| **Cursor** | `.cursor/skills/pm-manager` (+ optional per-command skills under `adapters/cursor/skills`) | `/pm-init`, `/pm-status`, … or natural language ("what should I do today") |
+| **Claude Code** | `.claude/commands/pm-*.md` | `/pm-init`, `/pm-status`, … |
+| **Other skill hosts** | Use `skills/pm-manager/SKILL.md` as a router into `templates/commands/` | Follow host skill conventions |
 
 Natural-language routing (when slash commands are unavailable) is documented in [`skills/pm-manager/memory/ROUTING.md`](./skills/pm-manager/memory/ROUTING.md).
 
 ## Available Slash Commands
 
-
-
 ### Daily commands (remember these)
 
-
-| Command      | Agent skill | Description                                               |
-| ------------ | ----------- | --------------------------------------------------------- |
-| `/pm-init`   | `pm-init`   | Create `.pm/`, detect lifecycle, discover charter sources |
-| `/pm-status` | `pm-status` | Health summary + **Today's Top3** (primary daily entry)        |
-| `/pm-next`   | `pm-next`   | Claim the next todo (`in_progress`)                       |
-| `/pm-done`   | `pm-done`   | Close `TODO-xxx`, refresh overview                        |
-| `/pm-fix`    | `pm-fix`    | Parse pasted logs/stacks into bugs + todos                |
-| `/pm-all`    | `pm-all`    | Full gated scan; rebuilds `.pm/dashboard/` aggregate      |
-| `/pm-arch`   | `pm-arch`   | Generate architecture + flow Mermaid diagrams from repo   |
-
-
-
+| Command | Agent skill | Description |
+|---------|-------------|-------------|
+| `/pm-init` | `pm-init` | Create `.pm/`, detect Spec Kit, draft PRD if needed, wait for confirm |
+| `/pm-status` | `pm-status` | Health summary + open blocking/high todos (primary daily entry) |
+| `/pm-next` | `pm-next` | Claim the next todo (`in_progress`) |
+| `/pm-done` | `pm-done` | Close `TODO-xxx`, refresh overview |
+| `/pm-fix` | `pm-fix` | Parse pasted logs/stacks into bugs + todos |
+| `/pm-all` | `pm-all` | Full gated scan; rebuilds `.pm/dashboard/` aggregate |
+| `/pm-arch` | `pm-arch` | Generate architecture + flow Mermaid diagrams from repo |
 
 ### Planning & export
 
-
-| Command       | Agent skill  | Description                                              |
-| ------------- | ------------ | -------------------------------------------------------- |
-| `/pm-outline` | `pm-outline` | Generate outline + draft charter from intent             |
-| `/pm-charter` | `pm-charter` | create / import / discover / approve / skip charter      |
-| `/pm-export`  | `pm-export`  | Desensitized markdown summary for share / machine switch |
-
-
-
+| Command | Agent skill | Description |
+|---------|-------------|-------------|
+| `/pm-outline` | `pm-outline` | Generate outline + draft charter from intent |
+| `/pm-charter` | `pm-charter` | create / import / discover / approve / skip charter |
+| `/pm-export` | `pm-export` | Desensitized markdown summary for share / machine switch |
 
 ### Internal (usually via `/pm-all`)
 
-
-| Command        | Agent skill   | Description                   |
-| -------------- | ------------- | ----------------------------- |
+| Command | Agent skill | Description |
+|---------|-------------|-------------|
 | `/pm-discover` | `pm-discover` | Deep-scan all enabled modules |
-
 
 Command prompts live in [`skills/pm-manager/templates/commands/`](./skills/pm-manager/templates/commands/) with Spec Kit–style frontmatter and `handoffs`.
 
 ## How it relates to Spec Kit
 
-
-| Spec Kit                         | PM Manager                                 |
-| -------------------------------- | ------------------------------------------ |
-| `.specify/`                      | `.pm/` (local, not committed)              |
-| `/speckit.constitution`          | `/pm-charter` + auto-discover constitution |
-| Spec → plan → tasks → implement  | Status → Top3 → done / fix / all           |
-| Spec-driven **feature** delivery | Governance-driven **project health**       |
-
+| Spec Kit | PM Manager |
+|----------|------------|
+| `.specify/` | `.pm/` (local, not committed) |
+| `/speckit.constitution` | `/pm-charter` + auto-discover constitution |
+| Spec → plan → tasks → implement | Status → next → done / fix / all |
+| Spec-driven **feature** delivery | Governance-driven **project health** |
 
 They can run in the **same repo**. PM Manager will read Spec Kit artifacts when present; it does not replace Spec-Driven Development.
 
 ## Core Philosophy
 
-- **Simple daily UX** — few entry commands; Top3 over long finding dumps  
-- **Local & auditable** — evidence and todos stay in `.pm/` with redaction  
-- **On-demand scans** — no background daemons; paste / `--path` / registered sources  
-- **Safe defaults** — report first; never auto-write app code/SQL/cloud without confirmation  
+Governing text is Chinese-first in [`.specify/memory/constitution.md`](./.specify/memory/constitution.md) (v1.1.1). This README is English by default; [简体中文](./README.zh-CN.md) is the Chinese edition. In short:
+
+- **Local-first durable assets** — maps, indexes, reviews, and logs live in `.pm/` (git-excluded); they survive sessions and stay auditable
+- **Confirm before write** — report first; never auto-write app code/SQL/cloud or land generated docs without confirmation
+- **Map-first collaboration** — agents read the navigation map and doc index before walking the tree
+- **Evidence-backed quality loop** — review verdicts carry a reasoning chain; confirmed issues deposit into the rules library
+- **Daily status is not capped at three** — `/pm-status` lists open blocking/high todos (no Top3 cap); paste is first-class evidence for `/pm-fix`
+- **Chinese-first docs** — constitution, specs, plans, tasks, and PRDs are written in Chinese; CLI/command names stay English
+- **On-demand scans** — no background daemons; paste / `--path` / registered sources
 - **Charter-aware (optional)** — without a charter you get technical debt scans; with one you get scoped “unreasonable” checks **with confidence**
-
-
 
 ## Daily Workflow
 
-
-| Moment                   | Command                   |
-| ------------------------ | ------------------------- |
-| First time in a repo     | `/pm-init`                |
-| Morning / “what now?”    | `/pm-status` → `/pm-next` |
-| Finished a todo          | `/pm-done TODO-xxx`       |
-| Production / local error | paste + `/pm-fix`         |
-| Before release           | `/pm-all` → `.pm/dashboard/` |
-| Need architecture diagrams | `/pm-arch` or `pm arch`     |
-| Hand-off / laptop switch | `/pm-export`              |
-
+| Moment | Command |
+|--------|---------|
+| First time in a repo | `/pm-init` |
+| Morning / “what now?” | `/pm-status` → `/pm-next` |
+| Finished a todo | `/pm-done TODO-xxx` |
+| Production / local error | paste + `/pm-fix` |
+| Before release | `/pm-all` → `.pm/dashboard/` |
+| Need architecture diagrams | `/pm-arch` or `pm arch` |
+| Hand-off / laptop switch | `/pm-export` |
 
 ```text
 /pm-init → /pm-status → /pm-done
@@ -312,8 +289,6 @@ pm-manager/
   skills.sh.json                 # skills.sh groupings
 ```
 
-
-
 ## Prerequisites
 
 - **Windows / macOS / Linux**
@@ -322,8 +297,6 @@ pm-manager/
 - **Git** (so exclude rules can be written)
 - An AI coding agent that supports skills or project slash commands (Cursor or Claude Code recommended)
 - Optional: [Spec Kit](https://github.com/github/spec-kit) if you already use constitution/specs
-
-
 
 ## Support
 

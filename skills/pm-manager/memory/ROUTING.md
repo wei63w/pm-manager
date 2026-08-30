@@ -3,6 +3,7 @@
 | User phrase | Command |
 |-------------|---------|
 | initialize / start governing this project | `/pm-init` |
+| confirm PRD / draft requirements after init | `/pm-init` |
 | how are we doing / what should I do today | `/pm-status` |
 | what's next | `/pm-next` |
 | this is done / close TODO-xxx | `/pm-done` |
