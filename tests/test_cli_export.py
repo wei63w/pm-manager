@@ -50,6 +50,28 @@ def test_export_redacts_secrets_and_filters_window(tmp_path: Path) -> None:
     assert "leftover" in body
 
 
+def test_export_aborts_and_deletes_when_residue_forced(tmp_path: Path, monkeypatch) -> None:
+    (tmp_path / ".git" / "info").mkdir(parents=True)
+    assert (
+        runner.invoke(
+            app, ["init", str(tmp_path), "--scaffold-only"]
+        ).exit_code
+        == 0
+    )
+    dest = tmp_path / "leaky.md"
+    dest.write_text("pre-existing\n", encoding="utf-8")
+
+    def _leaky(*_args, **_kwargs):
+        dest.write_text("key=AKIAIOSFODNN7EXAMPLE leftover\n", encoding="utf-8")
+        return dest, 1
+
+    monkeypatch.setattr("pm_manager_cli.cli.write_export", _leaky)
+    result = runner.invoke(app, ["export", str(tmp_path), "--out", str(dest)])
+    assert result.exit_code == 2, result.output
+    assert "秘密" in result.output
+    assert not dest.exists()
+
+
 def test_export_without_pm_exits_2(tmp_path: Path) -> None:
     result = runner.invoke(app, ["export", str(tmp_path)])
     assert result.exit_code == 2

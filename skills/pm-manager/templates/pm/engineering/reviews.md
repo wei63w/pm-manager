@@ -1,14 +1,15 @@
-# Review findings
+# 评审记录
 
-Each **qualified** finding MUST include: summary, reasoning, snippet, severity.
-Missing reasoning or snippet = unqualified; do not deposit into the rules library.
+每条**合格**发现必须包含：摘要、推理、引用片段、严重级别。
+缺推理或片段 = 不合格，不得写入规范库。
 
 | id | summary | reasoning | snippet | severity | disposition |
 |----|---------|-----------|---------|----------|-------------|
 | — | — | — | — | P0/P1/P2 | unset / confirmed / false_positive / deferred |
 
-Disposition:
+处置：
 
-- `confirmed` → copy into `rules.md` (enabled)
-- `false_positive` → do not constrain later reviews
-- `deferred` → keep in this log only
+- `confirmed` → 写入 `rules.md`（enabled）
+- `false_positive` → 后续评审不再当约束
+- `deferred` / `later` → 只留在本表
+- 空 / `unset` → 待处置；`/pm-status` 应提示条数

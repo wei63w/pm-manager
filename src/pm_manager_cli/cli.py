@@ -13,8 +13,11 @@ from pm_manager_cli.agents import install_agents, install_skills_sh
 from pm_manager_cli.architecture import write_architecture
 from pm_manager_cli.audit import append_audit
 from pm_manager_cli.dashboard import hot_open_todos, write_dashboard
+from pm_manager_cli.diagnose import collect_checks, repair_hints
 from pm_manager_cli.docs_index import missing_count, scan_core_docs, write_doc_index
 from pm_manager_cli.export_audit import write_export
+from pm_manager_cli.redact import contains_secret_residue
+from pm_manager_cli.reviews import pending_review_count
 from pm_manager_cli.scaffold import ensure_git_exclude, scaffold
 from pm_manager_cli.speckit import (
     detect_speckit,
@@ -104,9 +107,9 @@ def init_cmd(
         help="只创建 .pm/（不安装助手技能/命令）",
     ),
     skills_sh: bool = typer.Option(
-        True,
+        False,
         "--skills-sh/--no-skills-sh",
-        help="同时非交互执行 `npx skills add wei63w/pm-manager -y`",
+        help="可选：非交互执行 `npx --yes skills@latest add wei63w/pm-manager -y`（默认关闭，不要求 Node）",
     ),
 ) -> None:
     """创建 .pm/ 治理台，并可选安装 Cursor/Claude 适配器。"""
@@ -114,13 +117,21 @@ def init_cmd(
     _require_dir(root)
 
     console.print(f"[bold]项目:[/bold] {root}")
-    pm = scaffold(root)
-    exclude_msg = ensure_git_exclude(root)
-    console.print(f"[green]完成[/green] 已搭建 {pm}")
-    console.print(f"[green]完成[/green] Git exclude: {exclude_msg}")
+    try:
+        pm = scaffold(root)
+        exclude_msg = ensure_git_exclude(root)
+        console.print(f"[green]完成[/green] 已搭建 {pm}")
+        console.print(f"[green]完成[/green] Git exclude: {exclude_msg}")
 
-    detection = detect_speckit(root)
-    write_init_metadata(root, detection)
+        detection = detect_speckit(root)
+        write_init_metadata(root, detection)
+    except FileNotFoundError as exc:
+        console.print(f"[red]错误[/red] 安装不完整或模板缺失: {exc}")
+        raise typer.Exit(2) from exc
+    except OSError as exc:
+        console.print(f"[red]错误[/red] 无法写入治理台: {exc}")
+        raise typer.Exit(1) from exc
+
     if detection.present:
         console.print("[green]完成[/green] 已检测到 Spec Kit")
         if detection.constitution:
@@ -137,16 +148,20 @@ def init_cmd(
             for p in docs:
                 console.print(f"    {p.relative_to(root).as_posix()}")
         elif looks_like_existing_project(root):
-            console.print("  已有项目 — 请在助手中运行 /pm-init 分析仓库并起草 PRD")
+            console.print("  已有项目 — 下一步只说 /pm-init（分析仓库并起草 PRD）")
         else:
-            console.print("  空仓/新项目 — 请在助手中运行 /pm-init 并给出一句话意图")
+            console.print("  空仓/新项目 — 下一步只说 /pm-init，并给出一句话意图")
 
     chosen = "none" if scaffold_only else agent.lower().strip()
     if chosen not in {"cursor", "claude", "all", "none"}:
         raise typer.BadParameter("--agent 必须是 cursor|claude|all|none")
 
     if chosen != "none":
-        results = install_agents(root, chosen)  # type: ignore[arg-type]
+        try:
+            results = install_agents(root, chosen)  # type: ignore[arg-type]
+        except FileNotFoundError as exc:
+            console.print(f"[red]错误[/red] 适配器安装失败: {exc}")
+            raise typer.Exit(2) from exc
         for name, dest in results.items():
             console.print(f"[green]完成[/green] 已安装 {name} -> {dest}")
 
@@ -154,11 +169,8 @@ def init_cmd(
         ok, msg = install_skills_sh(root)
         if ok:
             console.print(f"[green]完成[/green] skills.sh: {msg}")
-            if chosen != "none":
-                install_agents(root, chosen)  # type: ignore[arg-type]
-                console.print("[green]完成[/green] 已用本 CLI 包重新同步适配器")
         else:
-            console.print(f"[yellow]警告[/yellow] skills.sh: {msg}")
+            console.print(f"[yellow]警告[/yellow] skills.sh: {msg}（可忽略；项目内适配器已足够）")
 
     _audit(
         root,
@@ -168,12 +180,9 @@ def init_cmd(
     )
 
     console.print()
-    console.print("[bold]接下来（在 AI 编程助手中）:[/bold]")
-    if detection.present:
-        console.print("  /pm-init     # 导入 Spec Kit 宪章/规格，然后确认")
-    else:
-        console.print("  /pm-init     # 根据仓库起草 .pm/prd/prd.md，然后确认")
-    console.print("  /pm-status   # 全部未关闭阻断/高优先级待办（确认或跳过 PRD 之后）")
+    console.print("[bold]接下来（在 AI 编程助手中只说这一条）:[/bold]")
+    console.print("  /pm-init")
+    console.print("[dim]确认或跳过 PRD 后会做技术轻扫；日常再用 /pm-status。[/dim]")
 
 
 @app.command("install")
@@ -188,17 +197,22 @@ def install_cmd(
         help="cursor | claude | all",
     ),
     skills_sh: bool = typer.Option(
-        True,
+        False,
         "--skills-sh/--no-skills-sh",
-        help="同时非交互执行 `npx skills add wei63w/pm-manager -y`",
+        help="可选：非交互执行 `npx --yes skills@latest add wei63w/pm-manager -y`（默认关闭）",
     ),
 ) -> None:
     """安装或刷新项目内助手适配器（不搭脚手架）。"""
     root = _resolve_root(path)
+    _require_dir(root)
     chosen = agent.lower().strip()
     if chosen not in {"cursor", "claude", "all"}:
         raise typer.BadParameter("--agent 必须是 cursor|claude|all")
-    results = install_agents(root, chosen)  # type: ignore[arg-type]
+    try:
+        results = install_agents(root, chosen)  # type: ignore[arg-type]
+    except FileNotFoundError as exc:
+        console.print(f"[red]错误[/red] 适配器安装失败: {exc}")
+        raise typer.Exit(2) from exc
     for name, dest in results.items():
         console.print(f"[green]完成[/green] 已安装 {name} -> {dest}")
 
@@ -206,8 +220,6 @@ def install_cmd(
         ok, msg = install_skills_sh(root)
         if ok:
             console.print(f"[green]完成[/green] skills.sh: {msg}")
-            install_agents(root, chosen)  # type: ignore[arg-type]
-            console.print("[green]完成[/green] 已用本 CLI 包重新同步适配器")
         else:
             console.print(f"[yellow]警告[/yellow] skills.sh: {msg}")
 
@@ -218,54 +230,33 @@ def check_cmd(
         None, help="目标项目根目录（默认当前目录）"
     ),
 ) -> None:
-    """报告 .pm/、适配器与 PRD 资产是否存在（只读）。"""
+    """诊断 .pm/、地图、审计、PRD 与待处置评审（只读）。"""
     root = _resolve_root(path)
+    items = collect_checks(root)
+    if not (root / ".pm").is_dir():
+        console.print("[red]错误[/red] 缺少 .pm/。请先运行 `pm init`，然后在助手中只说 /pm-init。")
+        raise typer.Exit(2)
+
     table = Table(title=f"PM Manager 检查 — {root}")
     table.add_column("项")
     table.add_column("状态")
-
-    def _ok(flag: bool) -> str:
-        return "[green]有[/green]" if flag else "[yellow]缺[/yellow]"
-
-    checks: dict[str, bool] = {
-        ".pm/": (root / ".pm").is_dir(),
-        ".pm/config/project.yaml": (root / ".pm" / "config" / "project.yaml").is_file(),
-        ".pm/architecture/map.json": (root / ".pm" / "architecture" / "map.json").is_file(),
-        ".pm/state/audit.jsonl": (root / ".pm" / "state" / "audit.jsonl").is_file(),
-        ".pm/state/doc-index.md": (root / ".pm" / "state" / "doc-index.md").is_file(),
-        ".pm/dashboard/index.html": (root / ".pm" / "dashboard" / "index.html").is_file(),
-        ".pm/dashboard/overview.md": (root / ".pm" / "dashboard" / "overview.md").is_file(),
-        "Cursor 技能": (root / ".cursor" / "skills" / "pm-manager" / "SKILL.md").is_file(),
-        "Claude 命令": (
-            any((root / ".claude" / "commands").glob("pm-*.md"))
-            if (root / ".claude" / "commands").is_dir()
-            else False
-        ),
-        "git exclude .pm/": False,
-    }
-    exclude = root / ".git" / "info" / "exclude"
-    if exclude.is_file():
-        checks["git exclude .pm/"] = any(
-            line.strip() == ".pm/"
-            for line in exclude.read_text(encoding="utf-8").splitlines()
-        )
-
-    checks[".pm/prd/prd.md"] = (root / ".pm" / "prd" / "prd.md").is_file()
-
-    for item, ok in checks.items():
-        table.add_row(item, _ok(ok))
-
+    table.add_column("说明")
+    for item in items:
+        status = "[green]正常[/green]" if item.ok else "[yellow]需处理[/yellow]"
+        table.add_row(item.name, status, item.detail)
     detection = detect_speckit(root)
     table.add_row(
         "Spec Kit",
         "[green]在用[/green]" if detection.present else "[dim]未使用[/dim]",
-    )
-    prd_status = read_prd_status(root)
-    table.add_row(
-        "prd.status",
-        prd_status if prd_status else "[dim]absent[/dim]",
+        "",
     )
     console.print(table)
+    hints = repair_hints(items)
+    if hints:
+        console.print()
+        console.print("[bold]修复建议[/bold]（助手里也可说 /pm-check repair）:")
+        for h in hints:
+            console.print(f"  - {h}")
 
 
 @app.command("dashboard")
@@ -278,7 +269,11 @@ def dashboard_cmd(
     root = _resolve_root(path)
     if not (root / ".pm").is_dir():
         _exit_missing_pm(root)
-    out = write_dashboard(root)
+    try:
+        out = write_dashboard(root)
+    except FileNotFoundError as exc:
+        console.print(f"[red]错误[/red] {exc}")
+        raise typer.Exit(2) from exc
     stats_path = out / "stats.json"
     summary = ""
     if stats_path.is_file():
@@ -392,14 +387,24 @@ def status_cmd(
     docs = scan_core_docs(root)
     miss = missing_count(docs)
     prd_status = read_prd_status(root) or "absent"
+    pending = pending_review_count(root)
     console.print(f"[bold]未关闭阻断/高优先级待办[/bold]（{len(todos)}）")
     if not todos:
-        console.print("  （无）")
+        if prd_status == "draft":
+            console.print("  （无）向导：PRD 仍是草稿，在助手回复 confirm / revise / skip")
+        elif not (root / ".pm" / "architecture" / "map.json").is_file():
+            console.print("  （无）向导：还没有导航地图，运行 `pm arch` 或 /pm-init 确认后轻扫")
+        else:
+            console.print("  （无）")
     else:
         for t in todos:
             console.print(f"  - {t.id} [{t.priority}] {t.title}  ({t.status})")
     console.print(f"缺失核心文档: {miss}")
     console.print(f"prd.status: {prd_status}")
+    if pending:
+        console.print(f"待处置评审: {pending}（助手 /pm-review：confirm / false_positive / later）")
+    else:
+        console.print("待处置评审: 0")
     console.print("[dim]叙事与下一步建议请用助手 /pm-status。[/dim]")
 
 
@@ -437,8 +442,10 @@ def export_cmd(
         console.print(f"[red]错误[/red] {exc}")
         raise typer.Exit(2) from exc
     body = dest.read_text(encoding="utf-8") if dest.is_file() else ""
-    if "AKIA" in body or "BEGIN PRIVATE KEY" in body:
-        console.print("[red]错误[/red] 导出仍含秘密原文，已中止")
+    if contains_secret_residue(body):
+        if dest.is_file():
+            dest.unlink(missing_ok=True)
+        console.print("[red]错误[/red] 导出仍含秘密原文，已删除该文件")
         raise typer.Exit(2)
     console.print(f"[green]完成[/green] 已导出 {n} 条 -> {dest}")
     _audit(

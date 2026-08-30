@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from pm_manager_cli.audit import read_audit
-from pm_manager_cli.redact import redact
+from pm_manager_cli.redact import contains_secret_residue, redact
 
 
 def parse_bound(value: str | None, *, end_of_day: bool = False) -> datetime | None:
@@ -117,6 +117,13 @@ def write_export(
     )
     dest = out if out is not None else default_export_path(root)
     dest = dest.resolve()
+    if contains_secret_residue(body):
+        if dest.is_file():
+            dest.unlink(missing_ok=True)
+        raise ValueError("导出仍含秘密原文，已中止（未写入文件）")
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(body, encoding="utf-8")
+    if dest.is_file() and contains_secret_residue(dest.read_text(encoding="utf-8")):
+        dest.unlink(missing_ok=True)
+        raise ValueError("导出仍含秘密原文，已删除该文件")
     return dest, len(rows)

@@ -11,7 +11,7 @@ $ARGUMENTS
 ## Outline
 
 1. Prefer **`pm export`** from the project root (`--from` / `--to` / `--out`). Default output: `.pm/exports/pm-export-YYYYMMDD.md`.
-2. If the CLI is unavailable, build markdown yourself: overview, open blocking/high todos, blocking findings, charter summary, milestones, **and** `.pm/state/audit.jsonl` rows in the requested time window (default: all). Run redaction (`secrets` → `***`) on the body before writing.
+2. If the CLI is unavailable, build markdown yourself: overview, open blocking/high todos, blocking findings, charter summary, milestones, **and** `.pm/state/audit.jsonl` rows in the requested time window (default: all). **Redact the body before writing.** If residue remains (`AKIA…`, `BEGIN PRIVATE KEY`), do not keep the file — delete it and fail.
 3. Exclude `local.yaml`, credentials, raw logs, secret originals. Never include un-redacted secrets.
 4. Show the export path and ask the user to open it.
 
@@ -28,6 +28,6 @@ Follow this order when the command mutates `.pm/` state:
 6. Refresh `state/overview.md` with **all** open/in_progress blocking+high todos (no 3-item cap). Medium/low: counts only unless `--verbose`.
 7. Append audit to `.pm/state/audit.jsonl` (command, time, input/output summary; include reasoning when the step was AI-produced).
 8. Output risk summary + recommended next step (≤20 lines). Never auto-write source/SQL/cloud or land generated docs/rules without explicit user confirmation.
-9. **Closing (required):** end with Summary + Open these links per `templates/commands/_closing.md`. Ask the user to open them.
+9. **Closing:** `_closing.md` 完整档（只列已写出的导出文件）。
 
-Design baseline: repo root `pm-manager-v2.md` (or packaged copy under `memory/`).
+Design baseline: `docs/prd.md` + 宪章。

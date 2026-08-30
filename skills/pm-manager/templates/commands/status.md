@@ -1,13 +1,10 @@
 ﻿---
-description: Show governance health, iteration progress, and all open blocking/high todos. Primary daily entry.
+description: Show governance health, wizard next step, all open blocking/high todos, and pending review count. Primary daily entry.
 handoffs:
   - label: Take next task
     agent: pm.next
     prompt: Claim the first blocking or high-priority todo
     send: true
-  - label: Full scan
-    agent: pm.all
-    prompt: Run full governance scan
 ---
 
 ## User Input
@@ -16,38 +13,32 @@ handoffs:
 $ARGUMENTS
 ```
 
-Flags: `--full` (deep scan first), `--verbose` (show medium/low), `--focus=iteration`.
+Flags: `--verbose` (show medium/low). `--full` is deprecated: do **not** deep-scan here; tell the user to run `/pm-all` if they want a full technical scan.
 
 ## Outline
 
+`/pm-status` is a **health view**. Prefer not mutating module findings. You may refresh `overview.md` counts if stale.
+
 1. Require `.pm/config/project.yaml` else recommend `/pm-init`.
-2. Prefer running **`pm status`** from the project root and use its list as the source of truth for blocking/high todos + missing-doc count. If the CLI is unavailable, parse `state/todo.md` the same way (all open/in_progress blocking/high, **no 3-item cap**).
-3. If `--full`, run discover workflow first (read-only modules -> merge).
+2. Prefer **`pm status`** from the project root as the source of truth for blocking/high todos + missing-doc count + pending reviews. If the CLI is unavailable, parse `state/todo.md` and `.pm/engineering/reviews.md` the same way (**no 3-item cap**).
+3. Do **not** run discover / `/pm-discover`. Deep scan is `/pm-all`.
 4. Aggregate open findings counts by severity; list blocking items.
-5. Show charter/outline status and `needs_recompare`. Do **not** treat a draft PRD/charter as the baseline.
-6. Light iteration progress if `process.iteration` + milestones/REQ exist.
-7. Default hide medium/low unless `--verbose` (show counts only). Add a short Chinese health sentence and how to `/pm-done TODO-xxx` on top of the CLI dump.
-8. Point the user to **`.pm/dashboard/index.html`** (browser) or **`overview.md`** (IDE) for the cross-module aggregate (if missing, run `pm dashboard` or `/pm-all`).
-9. **Required closing**: follow `templates/commands/_closing.md` - always list the Open these links and ask the user to open the dashboard overview.
+5. Show charter/outline/`prd.status`. Do **not** treat a draft PRD/charter as the baseline.
+6. If `reviews.md` has rows with `disposition` unset / empty / `deferred`, print: `有 N 条待处置评审，回复 /pm-review 后用 confirm / false_positive / later。`
+7. Default hide medium/low unless `--verbose`. Add a short **Chinese** health sentence and how to `/pm-done TODO-xxx`.
+8. Empty / first-hour: follow the **wizard** in `.pm/state/overview.md` (confirm PRD / 轻扫 / `/pm-arch` / `/pm-all`). Do not say “没有待办” as if the tool is empty when the wizard still has a step.
+9. Point to `.pm/dashboard/index.html` **only if it exists**; else say 看板尚未生成，发布前再跑 `/pm-all` 或 `pm dashboard`.
+10. Closing: `_closing.md` **轻量**档（1–2 个已存在链接）。
 
 ## Done When
 
 - [ ] All open blocking/high todos listed (no 3-item cap)
+- [ ] Pending reviews mentioned when N > 0
 - [ ] No secret leakage in output
+- [ ] Chinese health sentence when the user writes Chinese
 
+## Shared Workflow
 
-## Shared Workflow (all /pm-* commands)
+Read-only preferred. If you refresh overview, still: map-first, redact, no auto-write of app code, graded closing.
 
-Follow this order when the command mutates `.pm/` state:
-
-1. Read `.pm/config/project.yaml` and `.pm/config/local.yaml` (if missing and command is not init → recommend `/pm-init`).
-2. If `.pm/` metadata is valid, load it; do **not** force a full-repo rescan. On-demand **incremental** scan using `sources` + `extra_scan_roots` + `--path` + **conversation paste** (highest priority for `/pm-fix`). Prefer `.pm/architecture/map.json` and the document index before walking the tree.
-3. Desensitize evidence → `.pm/evidence/scans/{command}-{timestamp}.json` (secrets → `***`). Never persist raw secrets.
-4. Optional charter compare only when `charter.status == approved` (attach `confidence`). Draft PRD/charter MUST NOT be used as the baseline.
-5. Incremental merge into module `findings.md` / `todo.md`; sync authoritative `state/todo.md`.
-6. Refresh `state/overview.md` with **all** open/in_progress blocking+high todos (no 3-item cap). Medium/low: counts only unless `--verbose`.
-7. Append audit to `.pm/state/audit.jsonl` (command, time, input/output summary; include reasoning when the step was AI-produced).
-8. Output risk summary + recommended next step (≤20 lines). Never auto-write source/SQL/cloud or land generated docs/rules without explicit user confirmation.
-9. **Closing (required):** end with Summary + Open these links per `templates/commands/_closing.md`. Ask the user to open them.
-
-Design baseline: repo root `pm-manager-v2.md` (or packaged copy under `memory/`).
+Design baseline: `docs/prd.md` + 宪章。

@@ -3,6 +3,7 @@ from pathlib import Path
 from pm_manager_cli.speckit import (
     detect_speckit,
     existing_prd_candidates,
+    infer_project_type,
     looks_like_existing_project,
     write_init_metadata,
 )
@@ -49,6 +50,12 @@ def test_existing_prd_finds_substantial_doc(tmp_path: Path) -> None:
     found = existing_prd_candidates(tmp_path)
     assert len(found) == 1
     assert found[0].name.lower() == "prd.md"
+
+
+def test_infer_project_type(tmp_path: Path) -> None:
+    assert infer_project_type(tmp_path) == "unknown"
+    (tmp_path / "package.json").write_text("{}\n", encoding="utf-8")
+    assert infer_project_type(tmp_path) == "node"
 
 
 def test_looks_like_existing_project(tmp_path: Path) -> None:

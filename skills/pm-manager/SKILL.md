@@ -1,9 +1,9 @@
 ---
 name: pm-manager
-description: "Project governance workbench (/pm-*). Use for /pm-init (Spec Kit detect or draft PRD for confirm), /pm-status, /pm-next, /pm-done, /pm-fix, /pm-all, /pm-outline, /pm-charter, /pm-export, /pm-arch, open blocking/high todos (no 3-item cap), pasted logs/stacks, and local .pm governance. Triggers on project management, governance, what should I do today, help me with this error."
+description: "Project governance workbench (/pm-*). Daily: /pm-init, /pm-status, /pm-next, /pm-done, /pm-fix; release: /pm-all; review diffs: /pm-review; diagnose: /pm-check. Triggers on what should I do today, help me with this error, initialize governance, review this change."
 license: MIT
 metadata:
-  version: "0.0.7"
+  version: "0.0.8"
   author: wei63w
 ---
 
@@ -13,34 +13,37 @@ Spec-kit-inspired command pack for **local `.pm/` project governance**.
 
 ## When to use
 
-- User says `/pm-init`, `/pm-status`, `/pm-all`, `/pm-fix`, `/pm-done`, `/pm-next`, `/pm-outline`, `/pm-charter`, `/pm-export`, `/pm-arch`
-- Natural language: initialize governance, what should I do today, full health check, help me with this error, this todo is done, generate architecture diagram
+- User says `/pm-init`, `/pm-status`, `/pm-next`, `/pm-done`, `/pm-fix`, `/pm-all`, `/pm-review`, `/pm-check`, `/pm-outline`, `/pm-charter`, `/pm-export`, `/pm-arch`
+- Natural language: initialize governance, what should I do today, full health check, help me with this error, this todo is done, review this diff, repair .pm
+- Do **not** send users to `/pm-discover` (internal to `/pm-all`)
 
 ## How to execute
 
 1. Resolve command name from user message (see routing table in `memory/ROUTING.md`).
 2. Read the matching file under `templates/commands/<name>.md` and **follow it exactly**.
-3. For `/pm-init`, run `pm init <project-root>` (or `scripts/python/create_pm_scaffold.py`) before filling config. Then detect Spec Kit; if absent, draft `.pm/prd/prd.md` and **wait for user confirm**.
-4. Keep daily UX simple: `/pm-status` lists all open blocking+high todos (do **not** cap at 3); do not dump medium/low unless `--verbose`.
+3. For `/pm-init`, run `pm init <project-root>` (or `scripts/python/create_pm_scaffold.py`) before filling config. Then detect Spec Kit; if absent, draft `.pm/prd/prd.md` and **wait for user confirm**. After confirm or skip, run the **technical light scan** (docs + arch) in `init.md` §7.
+4. Keep daily UX simple: `/pm-status` lists all open blocking+high todos (do **not** cap at 3); mention pending reviews; do not dump medium/low unless `--verbose`.
 5. Never commit `.pm/`; never print secrets.
-6. **Always end with a short Summary + Open these links** (see `templates/commands/_closing.md`). Tell the user to open the overview — do not assume they know `.pm/dashboard/` or `.pm/architecture/` exists.
+6. **Closing:** `templates/commands/_closing.md` — graded; only existing paths. Chinese when the user writes Chinese.
 
 ## Command map
 
-| User command | Template |
-|--------------|----------|
-| `/pm-init` | `templates/commands/init.md` |
-| `/pm-status` | `templates/commands/status.md` |
-| `/pm-next` | `templates/commands/next.md` |
-| `/pm-done` | `templates/commands/done.md` |
-| `/pm-fix` | `templates/commands/fix.md` |
-| `/pm-all` | `templates/commands/all.md` |
-| `/pm-outline` | `templates/commands/outline.md` |
-| `/pm-charter` | `templates/commands/charter.md` |
-| `/pm-export` | `templates/commands/export.md` |
-| `/pm-arch` | `templates/commands/arch.md` |
-| `/pm-discover` | `templates/commands/discover.md` |
+| User command | Template | Audience |
+|--------------|----------|----------|
+| `/pm-init` | `templates/commands/init.md` | daily |
+| `/pm-status` | `templates/commands/status.md` | daily |
+| `/pm-next` | `templates/commands/next.md` | daily |
+| `/pm-done` | `templates/commands/done.md` | daily |
+| `/pm-fix` | `templates/commands/fix.md` | daily |
+| `/pm-all` | `templates/commands/all.md` | release |
+| `/pm-review` | `templates/commands/review.md` | quality |
+| `/pm-check` | `templates/commands/check.md` | recovery |
+| `/pm-outline` | `templates/commands/outline.md` | planning |
+| `/pm-charter` | `templates/commands/charter.md` | planning |
+| `/pm-export` | `templates/commands/export.md` | export |
+| `/pm-arch` | `templates/commands/arch.md` | maps |
+| `/pm-discover` | `templates/commands/discover.md` | internal |
 
 ## Design baseline
 
-Full contract lives in local `pm-manager-v*.md` (not published in this repo).
+Governing text: pack `docs/prd.md` + 宪章（中文优先）。

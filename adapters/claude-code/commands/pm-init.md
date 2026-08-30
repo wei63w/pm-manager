@@ -1,12 +1,9 @@
 ﻿---
-description: Initialize local .pm governance; detect Spec Kit; if absent, analyze the repo and draft a PRD for user confirmation.
+description: Initialize local .pm governance; detect Spec Kit; if absent, analyze the repo and draft a PRD for user confirmation; after confirm/skip run a technical light scan.
 handoffs:
   - label: Project status
     agent: pm.status
     prompt: Show project governance status
-  - label: Full scan
-    agent: pm.all
-    prompt: Run full governance scan
 ---
 
 ## User Input
@@ -23,20 +20,22 @@ Accepted extra words: `confirm` | `approve` | `revise: <notes>` | `skip` | a one
 
 You are running `/pm-init` for the **current workspace project root**.
 
+User-facing replies must be **Chinese** when the user writes Chinese. Command names stay `/pm-*`.
+
 ### 1. Scaffold
 
-Preferred: `pm init <root>` (creates `.pm/`, git exclude, adapters).
+Preferred: `pm init <root>` (creates `.pm/`, git exclude, adapters). CLI no longer runs skills.sh unless `--skills-sh`.
 
 Fallbacks: `scripts/powershell/create-pm-scaffold.ps1`, `python scripts/python/create_pm_scaffold.py`, or copy `templates/pm/` by hand.
 
-Do **not** overwrite user-edited files under `.pm/`.
+Do **not** overwrite user-edited files under `.pm/`. Never overwrite `prd.status=confirmed` or `charter.status=approved`.
 
-### 2. Lifecycle
+### 2. Lifecycle and type
 
 - `new`: empty or scaffold-only (README / `.git` only, no business source).
 - `existing`: build files, `src` / `app` / `lib`, or app config present.
 
-Write `project.lifecycle` on `.pm/config/project.yaml` if still empty.
+If `project.type` is `unknown` / empty, infer from manifests (`package.json` → node, `pyproject.toml` → python, `go.mod` → go, `pom.xml` / `build.gradle` → java, `Cargo.toml` → rust). Do not invent a stack. Write `project.lifecycle` and `project.type` on `.pm/config/project.yaml`.
 
 ### 3. Detect Spec Kit (required)
 
@@ -57,8 +56,8 @@ Write `speckit.present` / `constitution` / `specs` on `project.yaml`.
 2. Map `.specify/specs/**/*.md` → `.pm/charter/requirements.md` (`REQ-xxx`).
 3. Write `.pm/charter/sources.md`. Set `charter.status=draft`, `source=discovered`, `prd.source=speckit`, `prd.status=draft`.
 4. **Do not** invent a competing PRD that disagrees with Spec Kit.
-5. **Stop** and ask the user to **confirm** / **revise** / **skip**.
-6. Do not run a module deep-scan.
+5. **Stop** and ask the user to **confirm** / **revise** / **skip** (Chinese prompt).
+6. Do not run a module deep-scan yet.
 
 #### B. No Spec Kit — repo already has a real product doc
 
@@ -86,29 +85,29 @@ Then write a complete draft to `.pm/prd/prd.md`:
 
 Rules:
 
-- Unknown → write `Information missing`. Never invent users, revenue, or roadmap.
+- Unknown → write `信息不足`. Never invent users, revenue, or roadmap.
 - Do not write the repo's `docs/prd.md` unless the user explicitly asks.
 - Set `prd.status=draft` on `project.yaml`. Sync a short draft into `.pm/charter/` (still draft).
 
 **Stop.** Show a short PRD summary (≤ 20 lines) and wait:
 
 ```text
-Draft PRD: `.pm/prd/prd.md`
+PRD 草稿：`.pm/prd/prd.md`
 
-Reply with one of:
-- confirm — use this as the governance baseline
-- revise: <what to change>
-- skip — no PRD baseline this time
+请回复其一：
+- confirm — 把这份说明当作治理基线
+- revise: <要改什么>
+- skip — 本次不要 PRD 基线（仍可做技术扫描）
 ```
 
 #### D. No Spec Kit — new / empty repo
 
-- If the user already gave a one-line intent → same as `/pm-outline`, plus fill `.pm/prd/prd.md`, then ask confirm.
+- If the user already gave a one-line intent → fill `.pm/prd/prd.md` from that intent, then ask confirm.
 - Else ask **one** question: the project intent. Do not ask a long intake form.
 
 ### 5. Confirm / revise / skip (same session or later `/pm-init confirm`)
 
-- **confirm**: `prd.status=confirmed`. Sync goals / scope / REQs into `.pm/charter/`. `charter.status=draft`. Tell the user they can `/pm-charter approve` when ready.
+- **confirm**: `prd.status=confirmed`. Sync goals / scope / REQs into `.pm/charter/`. `charter.status=draft`. Tell the user they can later `/pm-charter approve` if they want charter-gated compare — **not required** for technical scans.
 - **revise: …**: edit `.pm/prd/prd.md`, keep `draft`, ask confirm again.
 - **skip**: `prd.status=skipped`. Do not pretend a baseline exists.
 
@@ -118,23 +117,27 @@ Never overwrite `prd.status=confirmed` or `charter.status=approved` on a later i
 
 If still unset: default `agile`, iteration `2w`. Ask only if the user did not give a mode.
 
-### 7. Do not deep-scan
+### 7. After confirm or skip — technical light scan (required)
 
-Leave module scans to `/pm-discover` or `/pm-all` **after** the user confirms or skips the PRD.
+Do **not** wait for `/pm-all` or `/pm-discover`. Immediately:
 
-### 8. Overview
+1. Prefer `pm docs` to refresh `.pm/state/doc-index.md` (AGENTS.md/agent.md, PRD, design, API, deploy, trouble-shoot). If CLI unavailable, update the index yourself.
+2. Prefer `pm arch` to write `.pm/architecture/map.json` + Mermaid + `tree.md`. Incremental if a map already exists.
+3. Rebuild overview with the **wizard** empty-state (missing PRD / missing map / missing dashboard / next command). Do not write “没有待办，去跑 /pm-all”.
+4. If core docs are missing, ask: 用户自备 **或** AI 起草。AI 草稿可编辑，未确认不得覆盖正式路径。
+5. Optional: `pm dashboard` so `.pm/dashboard/` exists after first init.
 
-Refresh `state/overview.md` with: lifecycle, Spec Kit yes/no, `prd.status`, recommended next (`confirm` or `/pm-status`).
+Do **not** run a full module deep-scan here. Deep scan is `/pm-all` (default technical, no PRD gate).
 
-### 9. Core docs + dialogue
+### 8. Overview + dialogue
 
-After baseline branch (A/B/C/D), prefer **`pm docs`** to refresh `.pm/state/doc-index.md` for the closed set: AGENTS.md/agent.md, PRD, design, API, deploy, trouble-shoot. If the CLI is unavailable, update the index yourself. If missing, ask: user upload/manual **or** AI draft. AI drafts MUST remain editable and MUST NOT overwrite the official path until the user confirms.
+Refresh `state/overview.md` with: lifecycle, type, Spec Kit yes/no, `prd.status`, wizard next step (`confirm` or `/pm-status`).
 
 Append a short desensitized dialogue note to `.pm/state/dialogue.md` (kind + intent files if parseable; else `unresolved` — never invent file lists).
 
 If `.pm/` metadata is already valid, **do not** force a full-repo rescan; load assets and only incrementally refresh.
 
-If metadata looks corrupt, tell the user and repair or increment — do not silently treat as empty.
+If metadata looks corrupt, tell the user and run `/pm-check` repair or increment — do not silently treat as empty.
 
 ## Done When
 
@@ -143,6 +146,7 @@ If metadata looks corrupt, tell the user and repair or increment — do not sile
 - [ ] Spec Kit detection recorded
 - [ ] If no Spec Kit: draft PRD written **or** user was asked for intent **or** user skipped
 - [ ] User was asked to confirm before treating the PRD as baseline
+- [ ] After confirm/skip: doc index + architecture map refreshed (or explicitly failed with a next step)
 
 ## Shared Workflow (all /pm-* commands)
 
@@ -156,6 +160,6 @@ Follow this order when the command mutates `.pm/` state:
 6. Refresh `state/overview.md` with **all** open/in_progress blocking+high todos (no 3-item cap). Medium/low: counts only unless `--verbose`.
 7. Append audit to `.pm/state/audit.jsonl` (command, time, input/output summary; include reasoning when the step was AI-produced).
 8. Output risk summary + recommended next step (≤20 lines). Never auto-write source/SQL/cloud or land generated docs/rules without explicit user confirmation.
-9. **Closing (required):** end with Summary + Open these links per `templates/commands/_closing.md`. Ask the user to open them.
+9. **Closing:** follow `templates/commands/_closing.md` (graded; only existing paths).
 
-Design baseline: `docs/prd.md` + `docs/design.md` in this pack (not unpublished `pm-manager-v*.md`).
+Design baseline: `docs/prd.md` + 宪章（中文优先）。

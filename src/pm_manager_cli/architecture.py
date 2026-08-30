@@ -673,7 +673,7 @@ def write_architecture(project_root: Path) -> tuple[Path, ProjectModel]:
     project_root = project_root.resolve()
     pm = project_root / ".pm"
     if not pm.is_dir():
-        raise FileNotFoundError(f"Missing .pm/ under {project_root}; run `pm init` first")
+        raise FileNotFoundError(f"缺少 .pm/（{project_root}）；请先运行 `pm init`")
 
     extra = _yaml_exclude_dirs(project_root)
     added = extra - SKIP_DIRS

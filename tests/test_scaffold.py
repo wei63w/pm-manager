@@ -24,7 +24,10 @@ def test_scaffold_does_not_touch_gitignore(tmp_path: Path) -> None:
     gitignore.write_text("keep-me\n", encoding="utf-8")
     scaffold(tmp_path)
     assert gitignore.read_text(encoding="utf-8") == "keep-me\n"
+    yaml_text = (tmp_path / ".pm" / "config" / "project.yaml").read_text(encoding="utf-8")
     assert (tmp_path / ".pm" / "config" / "project.yaml").is_file()
+    assert "type: unknown" in yaml_text
+    assert "java-spring-boot" not in yaml_text
 
 
 def test_second_scaffold_does_not_overwrite_user_files(tmp_path: Path) -> None:

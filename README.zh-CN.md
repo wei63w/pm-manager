@@ -86,9 +86,8 @@ uv tool install pm-manager-cli --force --from git+https://github.com/wei63w/pm-m
 ```bash
 cd /path/to/your-app
 
-# 创建 .pm/ + 安装 Cursor 与 Claude 适配器（默认）
-# 同时非交互执行：npx skills add wei63w/pm-manager -y
-# （skills.sh 索引；需要 Node.js/npx — 缺失时警告并跳过）
+# 创建 .pm/ + 安装 Cursor 与 Claude 适配器（默认；不需要 Node.js）
+# 可选 skills.sh 索引：pm init --skills-sh
 pm init
 
 # 仅 Cursor
@@ -100,15 +99,14 @@ pm init --agent claude
 # 只搭 .pm/（不装助手文件，也不走 skills.sh）
 pm init --scaffold-only
 
-# 跳过 skills.sh / npx
-pm init --no-skills-sh
+# 同时走 skills.sh 索引（需要 Node.js / npx）
+pm init --skills-sh
 ```
 
 不重新搭脚手架、只刷新适配器：
 
 ```bash
 pm install --agent all
-pm install --no-skills-sh   # 只刷新适配器
 pm check
 ```
 
@@ -127,6 +125,7 @@ pm check
 - 若有 Spec Kit：导入宪章/规格，并请你确认
 - 若**没有** Spec Kit：分析仓库（空仓可用一句话意图），起草 `.pm/prd/prd.md`，**等你确认**
 - 补全 `pm init` 已搭好的文件系统（由助手填写 PRD / 宪章）
+- 你确认或跳过之后会做**技术轻扫**（文档索引 + 地图），不必先跑 `/pm-all`
 
 ### 5. 查看当日状态
 
@@ -144,7 +143,7 @@ pm check
 /pm-fix
 ```
 
-对话粘贴是一等证据来源（不必先存成文件）。
+对话粘贴是一等证据来源（不必先存成文件）。**本次只分诊，不改代码**；要改仓库须再确认。
 
 ### 7. 发布前全量扫描
 
@@ -152,7 +151,7 @@ pm check
 /pm-all
 ```
 
-带门禁的全量治理扫描，摘要默认做**噪声过滤**（blocking + high）。完整列表加 `--verbose`。
+默认做**技术债扫描**（`prd.status=draft` 不拦截）。对照已确认基线时加 `--compare-baseline`。摘要默认噪声过滤（blocking + high）。完整列表加 `--verbose`。
 
 扫描后用浏览器打开 **`.pm/dashboard/index.html`** 看可视化看板（KPI、图表、模块风险）；或在 IDE 里读 **`overview.md`**。随时可用 `pm dashboard` 重建。
 
@@ -161,13 +160,12 @@ pm check
 | 命令 | 说明 |
 |------|------|
 | `pm version` | 打印 CLI 版本 |
-| `pm init [path]` | 创建 `.pm/` + 安装助手适配器（含 skills.sh） |
+| `pm init [path]` | 创建 `.pm/` + 安装助手适配器（默认不跑 Node/skills.sh） |
 | `pm init --agent cursor\|claude\|all\|none` | 选择要安装的适配器 |
 | `pm init --scaffold-only` | 只创建 `.pm/` |
-| `pm init --no-skills-sh` | 跳过 `npx skills add wei63w/pm-manager` |
+| `pm init --skills-sh` | 额外执行 `npx --yes skills@latest add wei63w/pm-manager -y`（需要 Node） |
 | `pm install --agent …` | 刷新适配器，不重新搭脚手架 |
-| `pm install --no-skills-sh` | 只刷新适配器 |
-| `pm check [path]` | 查看 `.pm/`、适配器、地图、审计、文档索引、`prd.status` |
+| `pm check [path]` | 诊断 `.pm/`、地图、审计、`prd.status`、待处置评审 |
 | `pm docs [path]` | 检测核心文档缺失并更新 `.pm/state/doc-index.md`（不生成正文） |
 | `pm status [path]` | 列出全部未关闭阻断/高优先级待办（只读，无 3 条上限） |
 | `pm dashboard [path]` | 按模块 findings/todos 重建 `.pm/dashboard/` |
@@ -192,27 +190,30 @@ pm check
 
 | 命令 | Agent 技能 | 说明 |
 |------|------------|------|
-| `/pm-init` | `pm-init` | 创建 `.pm/`、检测 Spec Kit、按需起草 PRD 并等待确认 |
-| `/pm-status` | `pm-status` | 健康摘要 + 未关闭的阻断/高优先级待办（日常入口） |
+| `/pm-init` | `pm-init` | 搭治理台、起草 PRD；确认或跳过后做技术轻扫 |
+| `/pm-status` | `pm-status` | 健康 + 向导 + 未关闭阻断/高优先级待办 + 待处置评审 |
 | `/pm-next` | `pm-next` | 认领下一条待办（`in_progress`） |
 | `/pm-done` | `pm-done` | 关闭 `TODO-xxx`，刷新总览 |
-| `/pm-fix` | `pm-fix` | 把粘贴的日志/堆栈解析成缺陷与待办 |
-| `/pm-all` | `pm-all` | 带门禁的全量扫描；重建 `.pm/dashboard/` 汇总 |
-| `/pm-arch` | `pm-arch` | 根据仓库生成架构图与流程 Mermaid |
+| `/pm-fix` | `pm-fix` | 把粘贴日志解析成待办（**不改业务代码**） |
+
+### 发布 / 质量 / 恢复
+
+| 命令 | Agent 技能 | 说明 |
+|------|------------|------|
+| `/pm-all` | `pm-all` | 全量**技术**扫描 + 看板（草稿 PRD 不拦截） |
+| `/pm-review` | `pm-review` | Diff 评审（推理+片段）；`confirm` / `false_positive` / `later` |
+| `/pm-check` | `pm-check` | 诊断/修复 `.pm/`，不覆盖已确认文件 |
+| `/pm-arch` | `pm-arch` | 生成架构图、地图与带注解目录树 |
 
 ### 规划与导出
 
 | 命令 | Agent 技能 | 说明 |
 |------|------------|------|
 | `/pm-outline` | `pm-outline` | 按意图生成大纲与宪章草稿 |
-| `/pm-charter` | `pm-charter` | create / import / discover / approve / skip 宪章 |
+| `/pm-charter` | `pm-charter` | 无参数时向导：create / import / discover / approve / skip |
 | `/pm-export` | `pm-export` | 脱敏 Markdown 摘要，便于分享或换机 |
 
-### 内部命令（通常经 `/pm-all` 调用）
-
-| 命令 | Agent 技能 | 说明 |
-|------|------------|------|
-| `/pm-discover` | `pm-discover` | 深扫全部已启用模块 |
+`/pm-discover` 是内部步骤（由 `/pm-all` 调用），不要让用户单独跑。
 
 命令提示词在 [`skills/pm-manager/templates/commands/`](./skills/pm-manager/templates/commands/)，带 Spec Kit 风格 frontmatter 与 `handoffs`。
 
@@ -244,10 +245,12 @@ pm check
 
 | 时机 | 命令 |
 |------|------|
-| 仓库第一次接入 | `/pm-init` |
+| 仓库第一次接入 | `/pm-init`（确认或跳过，然后轻扫） |
 | 早上 /「现在做什么」 | `/pm-status` → `/pm-next` |
 | 做完一条待办 | `/pm-done TODO-xxx` |
-| 生产 / 本地报错 | 粘贴 + `/pm-fix` |
+| 生产 / 本地报错 | 粘贴 + `/pm-fix`（只分诊） |
+| 本地改动要评 | `/pm-review` |
+| 治理台看起来坏了 | `/pm-check` |
 | 发布前 | `/pm-all` → `.pm/dashboard/` |
 | 需要架构图 | `/pm-arch` 或 `pm arch` |
 | 交接 / 换电脑 | `/pm-export` |

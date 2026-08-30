@@ -86,9 +86,8 @@ In your **application** repository (not required to keep this pack checked out):
 ```bash
 cd /path/to/your-app
 
-# Create .pm/ + install Cursor & Claude adapters (default)
-# Also runs non-interactive: npx skills add wei63w/pm-manager -y
-# (skills.sh indexing; requires Node.js/npx — skipped with a warning if missing)
+# Create .pm/ + install Cursor & Claude adapters (default; no Node.js)
+# Optional skills.sh index: pm init --skills-sh
 pm init
 
 # Cursor only
@@ -100,15 +99,14 @@ pm init --agent claude
 # Scaffold .pm/ only (no agent files, no skills.sh)
 pm init --scaffold-only
 
-# Skip skills.sh / npx step
-pm init --no-skills-sh
+# Also index via skills.sh (needs Node.js / npx)
+pm init --skills-sh
 ```
 
 Refresh adapters without re-scaffolding:
 
 ```bash
 pm install --agent all
-pm install --no-skills-sh   # adapters only
 pm check
 ```
 
@@ -127,6 +125,7 @@ Open Cursor / Claude Code in the project and run:
 - If Spec Kit is present: imports constitution/specs and asks you to confirm
 - If Spec Kit is **not** present: analyzes the repo (or a one-line intent on an empty repo) and drafts `.pm/prd/prd.md` for **your confirmation**
 - Complements the filesystem scaffold from `pm init` (agent fills the PRD / charter)
+- After you **confirm or skip**, runs a **technical light scan** (doc index + architecture map) — you do not need `/pm-all` first
 
 ### 5. Check today's status
 
@@ -144,7 +143,7 @@ Paste a stack trace or log into the chat:
 /pm-fix
 ```
 
-Conversation paste is a first-class evidence source (no need to save a file first).
+Conversation paste is a first-class evidence source (no need to save a file first). This command **triages only** — it does not change application code unless you confirm.
 
 ### 7. Pre-release full scan
 
@@ -152,7 +151,7 @@ Conversation paste is a first-class evidence source (no need to save a file firs
 /pm-all
 ```
 
-Runs gated full governance with a **noise-filtered** summary (blocking + high by default). Use `--verbose` for the long list.
+Runs a **technical** full scan with a **noise-filtered** summary (blocking + high by default). A draft PRD does **not** block. Use `--compare-baseline` only after a confirmed PRD/charter. Use `--verbose` for the long list.
 
 After the scan, open **`.pm/dashboard/index.html`** in a browser for the visual dashboard (KPI, charts, module risk). Or read **`overview.md`** in the IDE. Rebuild anytime with `pm dashboard`.
 
@@ -161,13 +160,12 @@ After the scan, open **`.pm/dashboard/index.html`** in a browser for the visual 
 | Command | Description |
 |---------|-------------|
 | `pm version` | Print CLI version |
-| `pm init [path]` | Create `.pm/` + install agent adapters (+ skills.sh) |
+| `pm init [path]` | Create `.pm/` + install agent adapters (Node/skills.sh off by default) |
 | `pm init --agent cursor\|claude\|all\|none` | Choose which adapters to install |
 | `pm init --scaffold-only` | Only create `.pm/` |
-| `pm init --no-skills-sh` | Skip `npx skills add wei63w/pm-manager` |
+| `pm init --skills-sh` | Also run `npx --yes skills@latest add wei63w/pm-manager -y` (needs Node) |
 | `pm install --agent …` | Refresh adapters without scaffolding |
-| `pm install --no-skills-sh` | Refresh adapters only |
-| `pm check [path]` | Show `.pm/`, adapters, map, audit, doc index, `prd.status` |
+| `pm check [path]` | Diagnose `.pm/`, map, audit, `prd.status`, pending reviews |
 | `pm docs [path]` | Detect missing core docs; update `.pm/state/doc-index.md` (does not generate bodies) |
 | `pm status [path]` | List all open blocking/high todos (read-only, no 3-item cap) |
 | `pm dashboard [path]` | Rebuild `.pm/dashboard/` from module findings/todos |
@@ -192,27 +190,30 @@ Natural-language routing (when slash commands are unavailable) is documented in 
 
 | Command | Agent skill | Description |
 |---------|-------------|-------------|
-| `/pm-init` | `pm-init` | Create `.pm/`, detect Spec Kit, draft PRD if needed, wait for confirm |
-| `/pm-status` | `pm-status` | Health summary + open blocking/high todos (primary daily entry) |
+| `/pm-init` | `pm-init` | Scaffold + draft PRD; after confirm/skip run a technical light scan |
+| `/pm-status` | `pm-status` | Health + wizard + all open blocking/high todos + pending reviews |
 | `/pm-next` | `pm-next` | Claim the next todo (`in_progress`) |
 | `/pm-done` | `pm-done` | Close `TODO-xxx`, refresh overview |
-| `/pm-fix` | `pm-fix` | Parse pasted logs/stacks into bugs + todos |
-| `/pm-all` | `pm-all` | Full gated scan; rebuilds `.pm/dashboard/` aggregate |
-| `/pm-arch` | `pm-arch` | Generate architecture + flow Mermaid diagrams from repo |
+| `/pm-fix` | `pm-fix` | Triage pasted logs into todos (**does not change app code**) |
+
+### Release / quality / recovery
+
+| Command | Agent skill | Description |
+|---------|-------------|-------------|
+| `/pm-all` | `pm-all` | Full **technical** scan + dashboard (draft PRD does not block) |
+| `/pm-review` | `pm-review` | Diff review with reasoning + `confirm` / `false_positive` / `later` |
+| `/pm-check` | `pm-check` | Diagnose / repair `.pm/` without overwriting confirmed files |
+| `/pm-arch` | `pm-arch` | Generate architecture + map + annotated tree |
 
 ### Planning & export
 
 | Command | Agent skill | Description |
 |---------|-------------|-------------|
 | `/pm-outline` | `pm-outline` | Generate outline + draft charter from intent |
-| `/pm-charter` | `pm-charter` | create / import / discover / approve / skip charter |
+| `/pm-charter` | `pm-charter` | Wizard if no args: create / import / discover / approve / skip |
 | `/pm-export` | `pm-export` | Desensitized markdown summary for share / machine switch |
 
-### Internal (usually via `/pm-all`)
-
-| Command | Agent skill | Description |
-|---------|-------------|-------------|
-| `/pm-discover` | `pm-discover` | Deep-scan all enabled modules |
+`/pm-discover` is internal (used by `/pm-all`). Do not send users there.
 
 Command prompts live in [`skills/pm-manager/templates/commands/`](./skills/pm-manager/templates/commands/) with Spec Kit–style frontmatter and `handoffs`.
 
@@ -244,10 +245,12 @@ Governing text is Chinese-first in [`.specify/memory/constitution.md`](./.specif
 
 | Moment | Command |
 |--------|---------|
-| First time in a repo | `/pm-init` |
+| First time in a repo | `/pm-init` (confirm or skip, then light scan) |
 | Morning / “what now?” | `/pm-status` → `/pm-next` |
 | Finished a todo | `/pm-done TODO-xxx` |
-| Production / local error | paste + `/pm-fix` |
+| Production / local error | paste + `/pm-fix` (triage only) |
+| Local diff quality | `/pm-review` |
+| `.pm/` looks broken | `/pm-check` |
 | Before release | `/pm-all` → `.pm/dashboard/` |
 | Need architecture diagrams | `/pm-arch` or `pm arch` |
 | Hand-off / laptop switch | `/pm-export` |

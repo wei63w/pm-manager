@@ -4,7 +4,7 @@
   "groupings": [
     {
       "title": "Project governance",
-      "description": "Local .pm workbench for health Top3, incident triage, release scans, and Spec Kit–aware charter discovery.",
+      "description": "Local .pm workbench for today's open blocking/high todos, incident triage, technical scans, and Spec Kit–aware charter discovery.",
       "skills": ["pm-manager"]
     }
   ]

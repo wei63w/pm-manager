@@ -30,11 +30,7 @@ $ARGUMENTS
 5. Review diagrams: fix wrong edges, rename nodes, add missing externals. Prefer editing the `.mmd` files then refreshing the Mermaid blocks in `overview.md`.
 6. Optional charter compare: mark out-of-scope services or missing in-scope capabilities in `architecture/findings.md` (with confidence) **only if charter is approved**.
 7. Default: write only under `.pm/architecture/`. If the user asks to land diagrams in the application tree, show the draft and **wait for confirm**.
-8. **Required closing**: short Summary + **Open these** links per `templates/commands/_closing.md`:
-   - `.pm/architecture/overview.md` (primary — open this)
-   - `.pm/architecture/map.json`
-   - `.pm/architecture/tree.md`
-   - Explicitly ask the user to open the architecture overview.
+8. **Closing:** `_closing.md` 完整档；只列已生成的架构文件。中文摘要。
 
 ## Done When
 
@@ -55,6 +51,6 @@ Follow this order when the command mutates `.pm/` state:
 6. Refresh `state/overview.md` with **all** open/in_progress blocking+high todos (no 3-item cap). Medium/low: counts only unless `--verbose`.
 7. Append audit to `.pm/state/audit.jsonl` (command, time, input/output summary; include reasoning when the step was AI-produced).
 8. Output risk summary + recommended next step (≤20 lines). Never auto-write source/SQL/cloud or land generated docs/rules without explicit user confirmation.
-9. **Closing (required):** end with Summary + Open these links per `templates/commands/_closing.md`. Ask the user to open them.
+9. **Closing:** `_closing.md` 完整档。
 
-Design baseline: local `pm-manager-v*.md` (not published).
+Design baseline: `docs/prd.md` + 宪章。

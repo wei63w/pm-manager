@@ -1,51 +1,51 @@
-# Project PRD
+# 项目 PRD
 
-| Field | Value |
-|-------|-------|
-| Status | draft |
-| Source | none |
-| Generated | |
+| 字段 | 值 |
+|------|-----|
+| 状态 | draft |
+| 来源 | none |
+| 生成时间 | |
 
-> This file is a **draft** until you confirm it. Unconfirmed PRDs are not the governance baseline.
-> Do not copy this to the repo `docs/` folder unless the user asks.
+> 本文件在你确认之前只是**草稿**。未确认的 PRD 不能当作治理基线。
+> 除非你明确要求，不要把本文件复制到仓库的 `docs/`。
 
-## Problem
+## 问题
 
-_Information missing._
+_信息不足。_
 
-## Users
+## 用户
 
-_Information missing._
+_信息不足。_
 
-## Goals
-
-- 
-
-## Not goals
+## 目标
 
 - 
 
-## Current product (observed)
+## 非目标
 
-_Fill from README, manifests, and top-level source. Cite paths. Do not invent features._
+- 
 
-## Requirements
+## 当前产品（据仓库观察）
 
-<!-- Agent writes REQ-xxx from evidence. Example:
+_根据 README、清单文件和顶层源码填写。引用路径。禁止虚构功能。_
 
-| ID | Priority | Requirement |
-|----|----------|-------------|
+## 需求
+
+<!-- 助手只根据证据写 REQ-xxx。示例：
+
+| ID | 优先级 | 需求 |
+|----|--------|------|
 | REQ-001 | P0 | … |
 -->
 
-## Success
+## 成功标准
 
 - 
 
-## Open questions
+## 待决问题
 
 - 
 
-## Confirm
+## 确认
 
-Reply in chat: **confirm** / **revise: …** / **skip**
+在对话里回复：**confirm** / **revise: …** / **skip**

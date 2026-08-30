@@ -1,28 +1,40 @@
-# Project governance overview
+# 项目治理总览
 
-> Last updated: {ISO8601} | Trigger: {command}
-> Lifecycle: {new|existing} | Process: {process.mode} | Charter: {absent|draft|approved} | Outline: {absent|draft|approved}
+> 更新时间: {ISO8601} | 触发: {command}
+> 生命周期: {new|existing} | 过程: {process.mode} | 宪章: {absent|draft|approved} | 提纲: {absent|draft|approved} | PRD: {absent|draft|confirmed|skipped}
 
-## Health
+## 健康
 
-| Module | Status | Blocking | High | Medium | Low | Last scan |
-|--------|--------|----------|------|--------|-----|-----------|
-| — | not scanned | 0 | 0 | 0 | 0 | — |
+| 模块 | 状态 | 阻断 | 高 | 中 | 低 | 上次扫描 |
+|------|------|------|----|----|----|----------|
+| — | 未扫描 | 0 | 0 | 0 | 0 | — |
 
-## Scan mode
+## 扫描模式
 
-- This run: technical scan | technical scan + charter compare
-- Charter re-compare needed: no
+- 本轮: 技术扫描 | 技术扫描 + 已确认基线对照
+- 宪章需重比: 否
 
-## Open blocking / high todos
+## 向导（有哪条做哪条）
 
-1. (no open blocking/high todos — run `/pm-all` or `/pm-fix`)
+按顺序只保留仍成立的一步：
 
-## Blocking items
+1. **还没有治理台** → 运行 `/pm-init`
+2. **PRD 仍是草稿** → 回复 `confirm` / `revise: …` / `skip`（跳过仍可做技术扫描）
+3. **还没有导航地图** → 运行 `/pm-arch` 或等 `/pm-init` 确认/跳过后的轻扫
+4. **看板尚未生成** → 运行 `/pm-all`（默认技术扫描，不要求已确认 PRD）
+5. **有未关闭待办** → `/pm-status` 认领，或 `/pm-next`
+6. **有待处置评审** → `/pm-review`（`confirm` / `false_positive` / `later`）
 
-- none
+## 未关闭的阻断 / 高优先级待办
 
-## Recommended next steps
+1. （还没有待办。若上面的向导已走完：贴报错用 `/pm-fix`，发布前用 `/pm-all`）
 
-1. `/pm-status`
-2. Before release: `/pm-all`; if you have an error paste: `/pm-fix`
+## 阻断项
+
+- 无
+
+## 建议下一步
+
+1. 先完成上面的向导，不要空跑 `/pm-all` 等门禁
+2. 日常：`/pm-status` → `/pm-next` → `/pm-done`
+3. 贴报错：`/pm-fix`（只分诊，不改代码）

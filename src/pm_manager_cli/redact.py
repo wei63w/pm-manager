@@ -16,6 +16,21 @@ _PATTERNS: tuple[re.Pattern[str], ...] = (
 )
 
 
+def contains_secret_residue(text: str) -> bool:
+    """True when known secret shapes remain after (or instead of) redaction."""
+    if not text:
+        return False
+    if "BEGIN PRIVATE KEY" in text:
+        return True
+    if re.search(r"AKIA[0-9A-Z]{16}", text):
+        return True
+    if re.search(r"ghp_[A-Za-z0-9]{20,}", text):
+        return True
+    if re.search(r"github_pat_[A-Za-z0-9_]{20,}", text):
+        return True
+    return False
+
+
 def redact(text: str, replacement: str = "***") -> str:
     """Replace secret-like substrings. Empty/None-safe: non-str returns as-is via str()."""
     if not text:

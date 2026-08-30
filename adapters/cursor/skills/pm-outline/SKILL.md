@@ -22,7 +22,7 @@ $ARGUMENTS
 3. Sync draft `.pm/charter/*` (REQ-xxx); set outline/charter status draft, source generated.
 4. Do **not** write application source code.
 5. Do **not** treat the outline/charter as acceptance criteria until `/pm-charter approve` (or `/pm-init confirm` for PRD).
-6. Recommend review + `/pm-charter approve` then `/pm-all` or `/pm-status`.
+6. Recommend `/pm-init confirm` or `/pm-charter` 向导；技术扫描用 `/pm-all`（不必先 approve）。
 
 
 ## Shared Workflow (all /pm-* commands)
@@ -37,6 +37,6 @@ Follow this order when the command mutates `.pm/` state:
 6. Refresh `state/overview.md` with **all** open/in_progress blocking+high todos (no 3-item cap). Medium/low: counts only unless `--verbose`.
 7. Append audit to `.pm/state/audit.jsonl` (command, time, input/output summary; include reasoning when the step was AI-produced).
 8. Output risk summary + recommended next step (≤20 lines). Never auto-write source/SQL/cloud or land generated docs/rules without explicit user confirmation.
-9. **Closing (required):** end with Summary + Open these links per `templates/commands/_closing.md`. Ask the user to open them.
+9. **Closing:** `_closing.md` 完整档（只列已有路径）。
 
-Design baseline: repo root `pm-manager-v2.md` (or packaged copy under `memory/`).
+Design baseline: `docs/prd.md` + 宪章。

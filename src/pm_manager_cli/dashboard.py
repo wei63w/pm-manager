@@ -347,22 +347,22 @@ def render_overview(stats: DashboardStats, findings: list[Finding], todos: list[
     max_risk = max(stats.module_risk.values()) if stats.module_risk else 0
 
     lines = [
-        "# Governance dashboard",
+        "# 治理看板",
         "",
-        f"> Generated: {stats.generated_at} (UTC)  ",
-        f"> Visual UI: open [`index.html`](./index.html) in a browser",
+        f"> 生成时间: {stats.generated_at} (UTC)  ",
+        f"> 可视化: 用浏览器打开 [`index.html`](./index.html)",
         "",
-        "## KPI snapshot",
+        "## KPI 快照",
         "",
-        "| Health | Score | Open findings | Hot (B+H) | Open todos | Modules |",
+        "| 健康 | 分数 | 未关闭发现 | 热点(阻断+高) | 未关闭待办 | 模块 |",
         "|--------|------:|--------------:|----------:|-----------:|--------:|",
         f"| **{stats.health_label}** | **{stats.health_score}/100** | "
         f"{stats.open_findings} | {stats.hot_count} | {stats.open_todos} | "
         f"{len(stats.modules_scanned)} |",
         "",
-        "## Severity distribution (open)",
+        "## 严重级别分布（未关闭）",
         "",
-        "| Severity | Count | Share | Distribution |",
+        "| 级别 | 条数 | 占比 | 分布 |",
         "|----------|------:|------:|--------------|",
     ]
     total_f = max(stats.open_findings, 1)
@@ -373,11 +373,11 @@ def render_overview(stats: DashboardStats, findings: list[Finding], todos: list[
 
     lines += [
         "",
-        "## Module risk ranking",
+        "## 模块风险排序",
         "",
-        "_Risk = blocking×100 + high×40 + medium×10 + low×3 + suggestion×1 + open_todos×5_",
+        "_风险 = 阻断×100 + 高×40 + 中×10 + 低×3 + 建议×1 + 未关闭待办×5_",
         "",
-        "| Rank | Module | Risk | B | H | M | L | S | Todos | Heat |",
+        "| 名次 | 模块 | 风险 | 阻 | 高 | 中 | 低 | 建 | 待办 | 热度 |",
         "|-----:|--------|-----:|--:|--:|--:|--:|--:|------:|------|",
     ]
     ranked = sorted(
@@ -395,9 +395,9 @@ def render_overview(stats: DashboardStats, findings: list[Finding], todos: list[
 
     lines += [
         "",
-        "## Todo priority mix (open)",
+        "## 待办优先级（未关闭）",
         "",
-        "| Priority | Count | Distribution |",
+        "| 优先级 | 条数 | 分布 |",
         "|----------|------:|--------------|",
     ]
     max_pri = max(stats.todos_by_priority.values()) if stats.todos_by_priority else 0
@@ -407,16 +407,16 @@ def render_overview(stats: DashboardStats, findings: list[Finding], todos: list[
 
     lines += [
         "",
-        "## Hot list (blocking + high)",
+        "## 热点清单（阻断 + 高）",
         "",
     ]
     hot = [f for f in open_f if f.severity in {"blocking", "high"}]
     hot.sort(key=lambda f: (SEVERITY_ORDER.index(f.severity), f.module, f.id))
     if not hot:
-        lines.append("_No blocking/high open findings._")
+        lines.append("_没有未关闭的阻断/高优先级发现。_")
     else:
-        lines.append("| Severity | Module | ID | Title |")
-        lines.append("|----------|--------|----|-------|")
+        lines.append("| 级别 | 模块 | ID | 标题 |")
+        lines.append("|------|------|----|------|")
         for f in hot[:50]:
             lines.append(
                 f"| {f.severity} | {f.module} | {f.id} | {_md_escape(f.title)} |"
@@ -424,16 +424,16 @@ def render_overview(stats: DashboardStats, findings: list[Finding], todos: list[
 
     lines += [
         "",
-        "## Open todos (priority order)",
+        "## 未关闭待办（按优先级）",
         "",
     ]
     pri_rank = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
     open_t.sort(key=lambda t: (pri_rank.get(t.priority.upper(), 9), t.module, t.id))
     if not open_t:
-        lines.append("_No open todos._")
+        lines.append("_没有未关闭待办。_")
     else:
-        lines.append("| Priority | Status | Module | ID | Title |")
-        lines.append("|----------|--------|--------|----|-------|")
+        lines.append("| 优先级 | 状态 | 模块 | ID | 标题 |")
+        lines.append("|--------|------|------|----|------|")
         for t in open_t[:50]:
             lines.append(
                 f"| {t.priority} | {t.status} | {t.module} | {t.id} | {_md_escape(t.title)} |"
@@ -441,15 +441,15 @@ def render_overview(stats: DashboardStats, findings: list[Finding], todos: list[
 
     lines += [
         "",
-        "## Files in this folder",
+        "## 本目录文件",
         "",
-        "- [`index.html`](./index.html) — visual dashboard (open in browser)",
-        "- [`overview.md`](./overview.md) — this page (IDE-friendly tables)",
-        "- [`findings.md`](./findings.md) — all open findings",
-        "- [`todos.md`](./todos.md) — all open todos",
-        "- [`stats.json`](./stats.json) — machine-readable counts",
+        "- [`index.html`](./index.html) — 可视化看板（浏览器打开）",
+        "- [`overview.md`](./overview.md) — 本页（IDE 表格）",
+        "- [`findings.md`](./findings.md) — 全部未关闭发现",
+        "- [`todos.md`](./todos.md) — 全部未关闭待办",
+        "- [`stats.json`](./stats.json) — 机器可读计数",
         "",
-        "Regenerate with `pm dashboard` or after `/pm-all`.",
+        "用 `pm dashboard` 或 `/pm-all` 重新生成。",
         "",
     ]
     return "\n".join(lines)
@@ -463,19 +463,19 @@ def render_findings(findings: list[Finding]) -> str:
             f.module,
         )
     )
-    lines = ["# Aggregated findings (open)", ""]
+    lines = ["# 汇总发现（未关闭）", ""]
     if not open_f:
-        lines.append("_None._")
+        lines.append("_无。_")
         return "\n".join(lines) + "\n"
     for f in open_f:
         lines += [
             f"## {f.id}",
             "",
-            f"- **Module**: {f.module}",
-            f"- **Severity**: {f.severity}",
-            f"- **Status**: {f.status}",
-            f"- **Title**: {f.title}",
-            f"- **Source**: `{f.source_path}`",
+            f"- **模块**: {f.module}",
+            f"- **级别**: {f.severity}",
+            f"- **状态**: {f.status}",
+            f"- **标题**: {f.title}",
+            f"- **来源**: `{f.source_path}`",
             "",
         ]
     return "\n".join(lines)
@@ -485,19 +485,19 @@ def render_todos(todos: list[Todo]) -> str:
     open_t = [t for t in todos if t.status not in {"done", "cancelled"}]
     pri_rank = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
     open_t.sort(key=lambda t: (pri_rank.get(t.priority.upper(), 9), t.module, t.id))
-    lines = ["# Aggregated todos (open)", ""]
+    lines = ["# 汇总待办（未关闭）", ""]
     if not open_t:
-        lines.append("_None._")
+        lines.append("_无。_")
         return "\n".join(lines) + "\n"
     for t in open_t:
         lines += [
             f"## {t.id}",
             "",
-            f"- **Module**: {t.module}",
-            f"- **Priority**: {t.priority}",
-            f"- **Status**: {t.status}",
-            f"- **Title**: {t.title}",
-            f"- **Source**: `{t.source_path}`",
+            f"- **模块**: {t.module}",
+            f"- **优先级**: {t.priority}",
+            f"- **状态**: {t.status}",
+            f"- **标题**: {t.title}",
+            f"- **来源**: `{t.source_path}`",
             "",
         ]
     return "\n".join(lines)
@@ -575,7 +575,7 @@ def render_html(stats: DashboardStats, findings: list[Finding], todos: list[Todo
 
     hot_rows = []
     if not hot:
-        hot_rows.append('<tr><td colspan="4" class="empty">No blocking/high findings</td></tr>')
+        hot_rows.append('<tr><td colspan="4" class="empty">没有阻断/高优先级发现</td></tr>')
     else:
         for f in hot[:40]:
             hot_rows.append(
@@ -587,7 +587,7 @@ def render_html(stats: DashboardStats, findings: list[Finding], todos: list[Todo
 
     todo_rows = []
     if not open_t_sorted:
-        todo_rows.append('<tr><td colspan="5" class="empty">No open todos</td></tr>')
+        todo_rows.append('<tr><td colspan="5" class="empty">没有未关闭待办</td></tr>')
     else:
         for t in open_t_sorted[:40]:
             todo_rows.append(
@@ -600,11 +600,11 @@ def render_html(stats: DashboardStats, findings: list[Finding], todos: list[Todo
 
     label = stats.health_label
     return f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>PM Governance Dashboard</title>
+<title>PM 治理看板</title>
 <style>
 :root {{
   --bg: #f4f6f8;
@@ -693,8 +693,8 @@ footer a {{ color: var(--accent); }}
 <div class="wrap">
   <header>
     <div>
-      <h1>PM Governance Dashboard</h1>
-      <p>Aggregate of module findings &amp; todos - Generated {_html_escape(stats.generated_at)} UTC</p>
+      <h1>PM 治理看板</h1>
+      <p>模块发现与待办汇总 · 生成于 {_html_escape(stats.generated_at)} UTC</p>
     </div>
     <div class="health {label}">
       <div class="score">{stats.health_score}</div>
@@ -703,29 +703,29 @@ footer a {{ color: var(--accent); }}
   </header>
 
   <section class="kpis">
-    <div class="kpi"><div class="n">{stats.open_findings}</div><div class="t">Open findings</div></div>
-    <div class="kpi"><div class="n">{stats.hot_count}</div><div class="t">Hot (blocking + high)</div></div>
-    <div class="kpi"><div class="n">{stats.open_todos}</div><div class="t">Open todos</div></div>
-    <div class="kpi"><div class="n">{len(stats.modules_scanned)}</div><div class="t">Modules scanned</div></div>
+    <div class="kpi"><div class="n">{stats.open_findings}</div><div class="t">未关闭发现</div></div>
+    <div class="kpi"><div class="n">{stats.hot_count}</div><div class="t">热点（阻断 + 高）</div></div>
+    <div class="kpi"><div class="n">{stats.open_todos}</div><div class="t">未关闭待办</div></div>
+    <div class="kpi"><div class="n">{len(stats.modules_scanned)}</div><div class="t">已扫描模块</div></div>
   </section>
 
   <section class="grid">
     <div class="panel">
-      <h2>Severity distribution</h2>
+      <h2>严重级别分布</h2>
       {''.join(sev_rows)}
     </div>
     <div class="panel">
-      <h2>Todo priority mix</h2>
+      <h2>待办优先级</h2>
       {''.join(pri_rows)}
     </div>
   </section>
 
   <section class="panel" style="margin-bottom:14px">
-    <h2>Module risk ranking</h2>
-    <p class="hint">Risk = blocking×100 + high×40 + medium×10 + low×3 + suggestion×1 + open_todos×5</p>
+    <h2>模块风险排序</h2>
+    <p class="hint">风险 = 阻断×100 + 高×40 + 中×10 + 低×3 + 建议×1 + 未关闭待办×5</p>
     <table>
       <thead><tr>
-        <th>Module</th><th>Risk</th><th>B</th><th>H</th><th>M</th><th>L</th><th>S</th><th>Todos</th><th>Heat</th>
+        <th>模块</th><th>风险</th><th>阻</th><th>高</th><th>中</th><th>低</th><th>建</th><th>待办</th><th>热度</th>
       </tr></thead>
       <tbody>
         {''.join(risk_rows)}
@@ -735,28 +735,28 @@ footer a {{ color: var(--accent); }}
 
   <section class="stack">
     <div class="panel">
-      <h2>Hot list</h2>
+      <h2>热点清单</h2>
       <table>
-        <thead><tr><th>Severity</th><th>Module</th><th>ID</th><th>Title</th></tr></thead>
+        <thead><tr><th>级别</th><th>模块</th><th>ID</th><th>标题</th></tr></thead>
         <tbody>{''.join(hot_rows)}</tbody>
       </table>
     </div>
     <div class="panel">
-      <h2>Open todos</h2>
+      <h2>未关闭待办</h2>
       <table>
-        <thead><tr><th>Priority</th><th>Status</th><th>Module</th><th>ID</th><th>Title</th></tr></thead>
+        <thead><tr><th>优先级</th><th>状态</th><th>模块</th><th>ID</th><th>标题</th></tr></thead>
         <tbody>{''.join(todo_rows)}</tbody>
       </table>
     </div>
   </section>
 
   <footer>
-    Also available as Markdown:
+    Markdown 副本：
     <a href="./overview.md">overview.md</a> ·
     <a href="./findings.md">findings.md</a> ·
     <a href="./todos.md">todos.md</a> ·
     <a href="./stats.json">stats.json</a>
-    · Regenerate with <code>pm dashboard</code> or <code>/pm-all</code>
+    · 用 <code>pm dashboard</code> 或 <code>/pm-all</code> 重新生成
   </footer>
 </div>
 </body>
@@ -769,7 +769,7 @@ def write_dashboard(project_root: Path) -> Path:
     project_root = project_root.resolve()
     pm = project_root / ".pm"
     if not pm.is_dir():
-        raise FileNotFoundError(f"Missing .pm/ under {project_root}; run `pm init` first")
+        raise FileNotFoundError(f"缺少 .pm/（{project_root}）；请先运行 `pm init`")
 
     findings, todos, scanned = collect(pm)
     stats = build_stats(findings, todos, scanned)

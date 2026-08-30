@@ -63,6 +63,43 @@ def existing_prd_candidates(root: Path) -> list[Path]:
     return found
 
 
+def infer_project_type(root: Path) -> str:
+    """Guess a coarse type from manifests. Never invent a stack name beyond these."""
+    root = root.resolve()
+    if any(
+        (root / name).is_file()
+        for name in ("pom.xml", "build.gradle", "build.gradle.kts")
+    ):
+        return "java"
+    if any(
+        (root / name).is_file()
+        for name in ("pyproject.toml", "setup.py", "requirements.txt")
+    ):
+        return "python"
+    if (root / "package.json").is_file():
+        return "node"
+    if (root / "go.mod").is_file():
+        return "go"
+    if (root / "Cargo.toml").is_file():
+        return "rust"
+    if (root / "composer.json").is_file():
+        return "php"
+    return "unknown"
+
+
+def infer_lifecycle(root: Path) -> str:
+    return "existing" if looks_like_existing_project(root) else "new"
+
+
+def _replace_project_field(text: str, key: str, value: str) -> str:
+    return re.sub(
+        rf"(?m)^(\s*{re.escape(key)}:\s*).*$",
+        rf"\g<1>{value}",
+        text,
+        count=1,
+    )
+
+
 def looks_like_existing_project(root: Path) -> bool:
     """Heuristic: has build manifest or business source, not README-only."""
     root = root.resolve()
@@ -139,6 +176,17 @@ def write_init_metadata(root: Path, detection: SpecKitDetection) -> Path:
             f"  source: {prd_source}\n"
             '  path: ".pm/prd/prd.md"\n'
         )
+
+    inferred_type = infer_project_type(root)
+    inferred_life = infer_lifecycle(root)
+    type_m = re.search(r"(?m)^\s*type:\s*(\S+)", text)
+    current_type = type_m.group(1).strip().strip("\"'") if type_m else ""
+    if current_type in {"", "unknown", '""'}:
+        text = _replace_project_field(text, "type", inferred_type)
+    life_m = re.search(r"(?m)^\s*lifecycle:\s*(\S+)", text)
+    current_life = life_m.group(1).strip().strip("\"'") if life_m else ""
+    if current_life in {"", "unknown", '""'}:
+        text = _replace_project_field(text, "lifecycle", inferred_life)
 
     yaml_path.write_text(text if text.endswith("\n") else text + "\n", encoding="utf-8")
     return yaml_path
