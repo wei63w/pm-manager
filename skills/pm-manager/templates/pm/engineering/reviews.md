@@ -3,9 +3,9 @@
 每条**合格**发现必须包含：摘要、推理、引用片段、严重级别。
 缺推理或片段 = 不合格，不得写入规范库。
 
-| id | summary | reasoning | snippet | severity | disposition |
-|----|---------|-----------|---------|----------|-------------|
-| — | — | — | — | P0/P1/P2 | unset / confirmed / false_positive / deferred |
+| id | summary | reasoning | snippet | severity | disposition | file | line | dimension | cross |
+|----|---------|-----------|---------|----------|-------------|------|------|-----------|-------|
+| — | — | — | — | P0/P1/P2 | unset | — | — | — | unset |
 
 处置：
 

@@ -83,3 +83,10 @@ scan:
   exclude_dirs: [target, node_modules, .git, dist, build, .pm]
   max_file_size_kb: 512
   incremental_by: mtime_hash
+docs:
+  required: [DOC-agents, DOC-prd, DOC-design, DOC-api, DOC-deploy, DOC-trouble]
+review:
+  gate_on_commit: false
+  require_reasoning: true
+checkup:
+  enabled: false

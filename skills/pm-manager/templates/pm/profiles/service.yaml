@@ -1,0 +1,10 @@
+profile: service
+docs:
+  required: [DOC-agents, DOC-prd, DOC-design, DOC-api, DOC-deploy, DOC-trouble]
+review:
+  gate_on_commit: false
+  require_reasoning: true
+checkup:
+  enabled: false
+scan:
+  exclude_dirs: [target, node_modules, .venv, venv, dist, build, vendor, .git, .pm]

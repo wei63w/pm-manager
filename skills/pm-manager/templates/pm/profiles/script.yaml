@@ -1,0 +1,10 @@
+profile: script
+docs:
+  required: [DOC-agents, DOC-prd, DOC-trouble]
+review:
+  gate_on_commit: false
+  require_reasoning: true
+checkup:
+  enabled: false
+scan:
+  exclude_dirs: [.venv, venv, __pycache__, .git, .pm]

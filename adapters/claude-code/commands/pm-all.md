@@ -27,7 +27,7 @@ Default mode is a **technical debt scan**. Do **not** block on `prd.status=draft
    - Architecture step **must** produce diagrams **and** `.pm/architecture/map.json`: run `pm arch` / `/pm-arch`.
    - Module deep-scan internals live in `templates/commands/discover.md` — do **not** tell the user to run `/pm-discover`.
 4. Merge findings/todos; write `evidence/scans/pm-all-*.json`.
-4b. Qualified reviews: every finding written to `.pm/engineering/reviews.md` MUST include reasoning + cited snippet. Unqualified rows MUST NOT enter `rules.md`. If there is no local diff, say there is nothing to review. Load enabled rules from `.pm/engineering/rules.md`. Only `disposition=confirmed` may become rules. P0/blocking MUST interrupt; P1/P2 stay in the report. Prefer `/pm-review` for a dedicated review pass. Do **not** treat V1.1 checkup/hooks/test-assist/risk badges as required.
+4b. Qualified reviews: every finding written to `.pm/engineering/reviews.md` MUST include reasoning + cited snippet. Unqualified rows MUST NOT enter `rules.md`. If there is no local diff, say there is nothing to review. Load enabled rules from `.pm/engineering/rules.md`. Only `disposition=confirmed` may become rules. P0/blocking MUST interrupt; P1/P2 stay in the report. Prefer `/pm-review` for a dedicated review pass. Full checkup is **`/pm-checkup` only** — do not run it here by default.
 5. **Rebuild the dashboard** (required):
    - Prefer running: `pm dashboard` (from project root)
    - Output: `.pm/dashboard/index.html`、`overview.md`、`findings.md`、`todos.md`、`stats.json`

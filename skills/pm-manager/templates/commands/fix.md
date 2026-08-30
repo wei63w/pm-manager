@@ -22,7 +22,7 @@ $ARGUMENTS
 3. Classify severity (blocking/high/medium/low/suggestion).
 4. Append `bugs/findings.md` + `state/todo.md` entry with next action.
 5. Charter compare for availability/success criteria with confidence **only if charter.status=approved**.
-6. Append a desensitized dialogue note to `.pm/state/dialogue.md` (intent + files if parseable; else `unresolved`).
+6. Persist a desensitized dialogue note via **`pm log --kind fix`** (intent + files the user named; else `unresolved` — never invent paths). Then `pm journal` if you need the timeline.
 7. Summarize in Chinese: severity, suggested `/pm-next` / later `/pm-done TODO-xxx`. Repeat: 未确认不改业务代码。
 
 Do **not** modify application code unless user confirms.

@@ -232,24 +232,36 @@ def _package_json_externals(root: Path) -> list[str]:
     return [label for key, label in mapping if key in text]
 
 
-def _scan_controllers(root: Path) -> list[str]:
-    names: list[str] = []
+def _rel(root: Path, path: Path) -> str:
+    try:
+        return path.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        return path.name
+
+
+def _scan_controller_files(root: Path) -> list[str]:
+    """Return relative paths of route/controller files."""
+    found: list[str] = []
     for p in _iter_files(root, {".java", ".kt"}, 300):
         text = _read(p, 40_000)
         if "@RestController" in text or "@Controller" in text:
-            names.append(p.stem)
-        if len(names) >= 24:
-            break
-    if names:
-        return names
-    # Node / Python route hints
+            found.append(_rel(root, p))
+        if len(found) >= 24:
+            return found
     for p in _iter_files(root, {".ts", ".js", ".py"}, 200):
         text = _read(p, 30_000)
-        if re.search(r"@(Get|Post|Put|Delete|Controller)\(|router\.(get|post)|APIRouter|@app\.(get|post)", text):
-            names.append(p.stem)
-        if len(names) >= 16:
+        if re.search(
+            r"@(Get|Post|Put|Delete|Controller)\(|router\.(get|post)|APIRouter|@app\.(get|post)",
+            text,
+        ):
+            found.append(_rel(root, p))
+        if len(found) >= 16:
             break
-    return names
+    return found
+
+
+def _scan_controllers(root: Path) -> list[str]:
+    return [Path(p).stem for p in _scan_controller_files(root)]
 
 
 def _feign_clients(root: Path) -> list[str]:
@@ -459,64 +471,483 @@ def _deploy_flow_mmd(model: ProjectModel) -> str:
 def _overview_md(model: ProjectModel, diagrams: dict[str, str]) -> str:
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     lines = [
-        "# Architecture overview",
+        "# 架构总览",
         "",
-        f"> Generated: {now} (UTC) by `pm arch`  ",
-        f"> Project: **{model.name}**  ",
-        f"> Stack: {', '.join(model.stacks) if model.stacks else 'unknown'}",
+        f"> 生成时间: {now} (UTC)，由 `pm arch`  ",
+        f"> 项目: **{model.name}**  ",
+        f"> 技术栈: {', '.join(model.stacks) if model.stacks else 'unknown'}",
         "",
-        "Heuristic diagrams from repository layout. Refine with `/pm-arch` (agent) after review.",
+        "根据仓库布局的启发式图。可用 `/pm-arch` 复核后修订。定位请先读 `map.json` 或运行 `pm map`。",
         "",
-        "## Detected summary",
+        "## 检测摘要",
         "",
-        f"| Field | Value |",
-        f"|-------|-------|",
-        f"| Modules | {', '.join(model.modules) if model.modules else '—'} |",
-        f"| Docker services | {', '.join(model.services) if model.services else '—'} |",
-        f"| Controllers | {', '.join(model.controllers[:12]) if model.controllers else '—'} |",
-        f"| Externals | {', '.join(model.externals) if model.externals else '—'} |",
+        "| 字段 | 值 |",
+        "|------|-----|",
+        f"| 模块 | {', '.join(model.modules) if model.modules else '—'} |",
+        f"| Docker 服务 | {', '.join(model.services) if model.services else '—'} |",
+        f"| 控制器 | {', '.join(model.controllers[:12]) if model.controllers else '—'} |",
+        f"| 外部依赖 | {', '.join(model.externals) if model.externals else '—'} |",
         "",
     ]
     if model.notes:
-        lines.append("## Notes")
+        lines.append("## 备注")
         lines.append("")
         for n in model.notes:
             lines.append(f"- {n}")
         lines.append("")
 
     titles = {
-        "system-context.mmd": "System context (C4 L1 style)",
-        "service-dependencies.mmd": "Service / module dependencies",
-        "request-flow.mmd": "Request flowchart",
-        "deploy-flow.mmd": "Deploy / release flowchart",
+        "system-context.mmd": "系统上下文（C4 L1）",
+        "service-dependencies.mmd": "服务 / 模块依赖",
+        "layer.mmd": "分层架构",
+        "request-flow.mmd": "请求流程",
+        "deploy-flow.mmd": "部署 / 发布流程",
     }
     for fname, title in titles.items():
         body = diagrams.get(fname, "")
+        if not body:
+            continue
         lines += [
             f"## {title}",
             "",
-            f"Source: [`{fname}`](./{fname})",
+            f"源文件: [`{fname}`](./{fname})",
             "",
             "```mermaid",
             body.rstrip(),
             "```",
             "",
         ]
-        lines += [
-        "## Files",
+    lines += [
+        "## 本目录文件",
         "",
-        "- `overview.md` — this page",
-        "- `map.json` — AI navigation map",
-        "- `tree.md` — annotated directory tree",
-        "- `system-context.mmd`",
-        "- `service-dependencies.mmd`",
-        "- `request-flow.mmd`",
-        "- `deploy-flow.mmd`",
+        "- `overview.md` — 本页",
+        "- `map.json` — AI 导航地图（先读这个）",
+        "- `tree.md` — 带注解目录树",
+        "- `system-context.mmd` / `service-dependencies.mmd` / `layer.mmd` / `request-flow.mmd` / `deploy-flow.mmd`",
         "",
-        "Regenerate: `pm arch` or `/pm-arch`.",
+        "重新生成: `pm arch` 或 `/pm-arch`。查询: `pm map <关键词>`。",
         "",
     ]
     return "\n".join(lines)
+
+
+def _layer_mmd(model: ProjectModel) -> str:
+    ui = [m for m in model.modules if re.search(r"web|ui|front|client|app", m, re.I)]
+    data = [e for e in model.externals if e in {"MySQL", "PostgreSQL", "MongoDB", "Database", "Prisma/DB", "Redis"}]
+    app = [m for m in model.modules if m not in ui] or [model.name]
+    lines = [
+        "flowchart TB",
+        f"  %% Layered architecture for {model.name}",
+        "  subgraph ui [界面]",
+    ]
+    if ui:
+        for n in ui[:6]:
+            lines.append(f'    {_safe_id("ui_"+n)}["{n}"]')
+    else:
+        lines.append('    UI["Client / UI"]')
+    lines += ["  end", "  subgraph app [应用]", ]
+    for n in app[:8]:
+        lines.append(f'    {_safe_id("app_"+n)}["{n}"]')
+    lines += ["  end", "  subgraph data [数据]", ]
+    if data:
+        for e in data[:6]:
+            lines.append(f'    {_safe_id("data_"+e)}[("{e}")]')
+    else:
+        lines.append('    DataUnknown[("数据存储 TBD")]')
+    lines += ["  end"]
+    others = [e for e in model.externals if e not in data]
+    if others:
+        lines.append("  subgraph ext [外部]")
+        for e in others[:6]:
+            lines.append(f'    {_safe_id("ext_"+e)}[("{e}")]')
+        lines.append("  end")
+    lines.append("  ui --> app")
+    lines.append("  app --> data")
+    if others:
+        lines.append("  app --> ext")
+    return "\n".join(lines) + "\n"
+
+
+def _readme_excerpt(path: Path, limit: int = 160) -> str:
+    if not path.is_file():
+        return ""
+    text = _read(path, 8_000)
+    paras = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip() and not p.lstrip().startswith("#")]
+    if not paras:
+        lines = [ln.strip() for ln in text.splitlines() if ln.strip() and not ln.startswith("#")]
+        paras = lines[:1]
+    excerpt = paras[0] if paras else ""
+    excerpt = re.sub(r"\s+", " ", excerpt).strip()
+    if len(excerpt) > limit:
+        excerpt = excerpt[: limit - 1] + "…"
+    return excerpt
+
+
+def _module_path(root: Path, name: str) -> str:
+    if (root / name).is_dir():
+        return name
+    return "."
+
+
+def _module_responsibility(root: Path, name: str) -> str:
+    path = root / name if (root / name).is_dir() else root
+    hint = _DIR_HINTS.get(name.lower(), "")
+    excerpt = ""
+    for readme in ("README.md", "readme.md", "README.zh-CN.md"):
+        excerpt = _readme_excerpt(path / readme)
+        if excerpt:
+            break
+    if hint and excerpt:
+        return f"{hint}。{excerpt}"
+    return hint or excerpt or "信息不足"
+
+
+def _manifest_key_files(root: Path) -> list[dict[str, str]]:
+    roles = [
+        ("README.md", "项目说明"),
+        ("README.zh-CN.md", "中文说明"),
+        ("AGENTS.md", "Agent 说明"),
+        ("pyproject.toml", "Python 包清单"),
+        ("package.json", "Node 清单"),
+        ("go.mod", "Go 模块"),
+        ("Cargo.toml", "Rust 清单"),
+        ("pom.xml", "Maven 清单"),
+        ("Dockerfile", "容器构建"),
+        ("docker-compose.yml", "编排"),
+        ("src/app.py", "应用入口"),
+        ("src/main.py", "应用入口"),
+        ("src/__main__.py", "应用入口"),
+        ("app.py", "应用入口"),
+        ("main.py", "应用入口"),
+        ("src/index.ts", "应用入口"),
+        ("src/main.ts", "应用入口"),
+        ("src/main.rs", "应用入口"),
+        ("cmd/main.go", "应用入口"),
+    ]
+    out: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for rel, role in roles:
+        p = root / rel
+        if p.is_file() and rel not in seen:
+            out.append({"path": rel, "role": role})
+            seen.add(rel)
+    for rel in _scan_controller_files(root):
+        if rel not in seen:
+            out.append({"path": rel, "role": "路由 / 控制器"})
+            seen.add(rel)
+    return out[:32]
+
+
+def _capability_entries(root: Path, model: ProjectModel, key_files: list[dict[str, str]]) -> list[dict]:
+    cap: list[dict] = []
+    marker_files = {
+        "Java/Maven": "pom.xml",
+        "Java/Gradle": "build.gradle",
+        "Node.js": "package.json",
+        "Python": "pyproject.toml",
+        "Go": "go.mod",
+        "Rust": "Cargo.toml",
+        "Docker": "Dockerfile",
+        "Docker Compose": "docker-compose.yml",
+        "Spring Boot": "pom.xml",
+    }
+    for stack in model.stacks:
+        rel = marker_files.get(stack, "")
+        files = [rel] if rel and (root / rel).is_file() else []
+        if stack == "Python" and not files and (root / "requirements.txt").is_file():
+            files = ["requirements.txt"]
+        if stack == "Java/Gradle" and not files:
+            for n in ("build.gradle.kts", "settings.gradle"):
+                if (root / n).is_file():
+                    files = [n]
+                    break
+        cap.append({"name": stack, "files": files})
+    route_files = [k["path"] for k in key_files if k["role"] == "路由 / 控制器"]
+    if route_files:
+        cap.append({"name": "HTTP / 路由", "files": route_files[:12]})
+    for ext in model.externals:
+        cap.append({"name": ext, "files": []})
+    return cap
+
+
+def _git_hotspots(root: Path, limit: int = 8) -> list[str]:
+    import subprocess
+
+    try:
+        proc = subprocess.run(
+            ["git", "log", "--since=90 days ago", "--name-only", "--pretty=format:"],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            timeout=8,
+            encoding="utf-8",
+            errors="replace",
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    if proc.returncode != 0:
+        return []
+    counts: dict[str, int] = {}
+    for line in proc.stdout.splitlines():
+        rel = line.strip().replace("\\", "/")
+        if not rel or rel.startswith("."):
+            continue
+        if any(part in SKIP_DIRS for part in rel.split("/")):
+            continue
+        if Path(rel).suffix.lower() not in _MAP_SUFFIXES:
+            continue
+        counts[rel] = counts.get(rel, 0) + 1
+    ranked = sorted(counts, key=lambda k: (-counts[k], k))
+    return ranked[:limit]
+
+
+def _hotspot_entries(changed: list[str], git_extra: list[str]) -> list[dict[str, str]]:
+    src_ext = {".py", ".java", ".kt", ".ts", ".js", ".go", ".rs"}
+    out: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for rel in changed:
+        if Path(rel).suffix.lower() not in src_ext:
+            continue
+        if rel in seen:
+            continue
+        out.append({"path": rel, "reason": "本轮变更"})
+        seen.add(rel)
+        if len(out) >= 16:
+            return out
+    for rel in git_extra:
+        if rel in seen:
+            continue
+        out.append({"path": rel, "reason": "近 90 日频繁修改"})
+        seen.add(rel)
+        if len(out) >= 16:
+            break
+    return out
+
+
+def _build_lookup(modules: list[dict], key_files: list[dict], capabilities: list[dict]) -> dict:
+    by_module = {m["name"]: m.get("path") or m["name"] for m in modules}
+    by_suffix: dict[str, list[str]] = {}
+    for kf in key_files:
+        suf = Path(kf["path"]).suffix.lower()
+        if not suf:
+            continue
+        by_suffix.setdefault(suf, []).append(kf["path"])
+    for cap in capabilities:
+        for f in cap.get("files") or []:
+            suf = Path(f).suffix.lower()
+            if suf:
+                by_suffix.setdefault(suf, []).append(f)
+    for suf, paths in list(by_suffix.items()):
+        by_suffix[suf] = list(dict.fromkeys(paths))[:20]
+    return {"by_module": by_module, "by_suffix": by_suffix}
+
+
+_COMMENT_PREFIXES = ("#", "//", "/*", "*", "--")
+_ENTRY_ROLES = {"应用入口", "路由 / 控制器"}
+_BULKY_LINES = 400
+_BULKY_BYTES = 64 * 1024
+
+
+def _file_flags(root: Path, rel: str, *, entry: bool, hotspot: bool) -> tuple[list[str], list[str]]:
+    flags: list[str] = []
+    reasons: list[str] = []
+    if entry:
+        flags.append("entry")
+        reasons.append("核心入口 / 路由")
+    if hotspot:
+        flags.append("hotspot")
+        reasons.append("本轮或近 90 日高频修改")
+    path = root / rel
+    if not path.is_file():
+        return flags, reasons
+    try:
+        size = path.stat().st_size
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return flags, reasons
+    lines = text.splitlines()
+    if size >= _BULKY_BYTES or len(lines) >= _BULKY_LINES:
+        flags.append("bulky")
+        reasons.append(f"体积 {size} 字节 / {len(lines)} 行")
+    sample = lines[:80]
+    comments = 0
+    codeish = 0
+    for line in sample:
+        s = line.strip()
+        if not s:
+            continue
+        if s.startswith(_COMMENT_PREFIXES):
+            comments += 1
+        else:
+            codeish += 1
+    if codeish >= 12 and comments < 2:
+        flags.append("uncommented")
+        reasons.append("抽样前 80 行几乎无注释")
+    return flags, reasons
+
+
+def _risk_file_entries(
+    root: Path,
+    key_files: list[dict[str, str]],
+    hotspots: list[dict[str, str]],
+) -> list[dict]:
+    entry_paths = {
+        k["path"]
+        for k in key_files
+        if k.get("role") in _ENTRY_ROLES or "入口" in str(k.get("role") or "")
+    }
+    hot_paths = {
+        (h.get("path") if isinstance(h, dict) else str(h))
+        for h in hotspots
+    }
+    seen: set[str] = set()
+    out: list[dict] = []
+    for rel in list(entry_paths) + [p for p in hot_paths if p]:
+        rel = str(rel).replace("\\", "/")
+        if not rel or rel in seen:
+            continue
+        seen.add(rel)
+        flags, reasons = _file_flags(
+            root, rel, entry=rel in entry_paths, hotspot=rel in hot_paths
+        )
+        if not flags:
+            continue
+        out.append({"path": rel, "flags": flags, "reasons": reasons})
+        if len(out) >= 24:
+            break
+    return out
+
+
+def build_nav_map(
+    root: Path,
+    model: ProjectModel,
+    hashes: dict[str, str],
+    changed: list[str],
+    notes: list[str],
+) -> dict:
+    modules = []
+    for name in model.modules:
+        modules.append(
+            {
+                "name": name,
+                "path": _module_path(root, name),
+                "responsibility": _module_responsibility(root, name),
+            }
+        )
+    key_files = _manifest_key_files(root)
+    capabilities = _capability_entries(root, model, key_files)
+    hotspots = _hotspot_entries(changed, _git_hotspots(root))
+    risk_files = _risk_file_entries(root, key_files, hotspots)
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return {
+        "generated_at": now,
+        "project": model.name,
+        "stacks": model.stacks,
+        "modules": modules,
+        "key_files": key_files,
+        "capabilities": capabilities,
+        "hotspots": hotspots,
+        "risk_files": risk_files,
+        "lookup": _build_lookup(modules, key_files, capabilities),
+        "excludes_applied": sorted(SKIP_DIRS),
+        "file_hashes": hashes,
+        "changed_paths": changed,
+        "notes": notes,
+    }
+
+
+def load_map(project_root: Path) -> dict | None:
+    path = project_root.resolve() / ".pm" / "architecture" / "map.json"
+    if not path.is_file():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def query_map(data: dict, query: str = "") -> list[dict[str, str]]:
+    """Match modules, capabilities, key files, hotspots. Empty query → summary rows."""
+    rows: list[dict[str, str]] = []
+    q = (query or "").strip().lower()
+
+    def add(kind: str, name: str, detail: str) -> None:
+        rows.append({"kind": kind, "name": name, "detail": detail})
+
+    if not q:
+        for m in data.get("modules") or []:
+            if isinstance(m, dict):
+                add("模块", m.get("name", ""), f"{m.get('path', '')} — {m.get('responsibility', '')}")
+        for kf in (data.get("key_files") or [])[:12]:
+            if isinstance(kf, dict):
+                add("入口", kf.get("path", ""), kf.get("role", ""))
+            elif isinstance(kf, str):
+                add("入口", kf, "")
+        for rf in (data.get("risk_files") or [])[:8]:
+            if isinstance(rf, dict):
+                flags = ",".join(rf.get("flags") or [])
+                add("高危", rf.get("path", ""), flags or "信息不足")
+        return rows
+
+    for m in data.get("modules") or []:
+        if not isinstance(m, dict):
+            continue
+        blob = " ".join(str(m.get(k, "")) for k in ("name", "path", "responsibility")).lower()
+        if q in blob:
+            add("模块", m.get("name", ""), f"{m.get('path', '')} — {m.get('responsibility', '')}")
+    for cap in data.get("capabilities") or []:
+        if isinstance(cap, dict):
+            name = str(cap.get("name", ""))
+            files = ", ".join(cap.get("files") or [])
+            if q in name.lower() or q in files.lower():
+                add("能力", name, files or "信息不足")
+        elif isinstance(cap, str) and q in cap.lower():
+            add("能力", cap, "")
+    for kf in data.get("key_files") or []:
+        if isinstance(kf, dict):
+            path = str(kf.get("path", ""))
+            role = str(kf.get("role", ""))
+            if q in path.lower() or q in role.lower():
+                add("文件", path, role)
+        elif isinstance(kf, str) and q in kf.lower():
+            add("文件", kf, "")
+    for h in data.get("hotspots") or []:
+        if isinstance(h, dict):
+            path = str(h.get("path", ""))
+            if q in path.lower():
+                add("热点", path, str(h.get("reason", "")))
+        elif isinstance(h, str) and q in h.lower():
+            add("热点", h, "")
+    for rf in data.get("risk_files") or []:
+        if not isinstance(rf, dict):
+            continue
+        path = str(rf.get("path", ""))
+        flags = ",".join(rf.get("flags") or [])
+        blob = f"{path} {flags} {' '.join(rf.get('reasons') or [])}".lower()
+        if q in blob or q in {"risk", "高危", "危险"}:
+            add("高危", path, flags or "信息不足")
+    return rows
+
+
+def _model_from_map(root: Path, data: dict) -> ProjectModel:
+    model = ProjectModel(name=str(data.get("project") or root.name), root=root)
+    stacks = data.get("stacks")
+    if isinstance(stacks, list) and stacks:
+        model.stacks = [str(s) for s in stacks]
+    else:
+        caps = data.get("capabilities") or []
+        model.stacks = [
+            str(c.get("name") if isinstance(c, dict) else c)
+            for c in caps
+            if not isinstance(c, dict) or c.get("name")
+        ][:8]
+    mods = data.get("modules") or []
+    model.modules = [
+        str(m.get("name") if isinstance(m, dict) else m) for m in mods
+    ]
+    model.notes = [str(n) for n in (data.get("notes") or [])]
+    return model
 
 
 _MAP_SUFFIXES = {
@@ -695,6 +1126,33 @@ def write_architecture(project_root: Path) -> tuple[Path, ProjectModel]:
             changed += sorted(p for p in old_hashes if p not in hashes)
             changed = sorted(set(changed))
 
+        arch.mkdir(parents=True, exist_ok=True)
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        old_map = None
+        if map_path.is_file():
+            try:
+                loaded = json.loads(map_path.read_text(encoding="utf-8"))
+                if isinstance(loaded, dict) and loaded.get("modules"):
+                    old_map = loaded
+            except (OSError, json.JSONDecodeError):
+                old_map = None
+
+        if old_hashes and not changed and old_map:
+            notes = list(old_map.get("notes") or [])
+            notes.extend(read_notes)
+            notes.append("incremental: 0 path(s) changed; reused map")
+            old_map["generated_at"] = now
+            old_map["file_hashes"] = hashes
+            old_map["changed_paths"] = []
+            old_map["notes"] = notes
+            map_path.write_text(
+                json.dumps(old_map, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+            model = _model_from_map(project_root, old_map)
+            model.notes = notes
+            return arch, model
+
         model = analyze_project(project_root)
         model.notes.extend(read_notes)
         if old_hashes:
@@ -702,11 +1160,10 @@ def write_architecture(project_root: Path) -> tuple[Path, ProjectModel]:
         else:
             model.notes.append("full scan")
 
-        arch.mkdir(parents=True, exist_ok=True)
-
         diagrams = {
             "system-context.mmd": _system_context_mmd(model),
             "service-dependencies.mmd": _service_deps_mmd(model),
+            "layer.mmd": _layer_mmd(model),
             "request-flow.mmd": _request_flow_mmd(model),
             "deploy-flow.mmd": _deploy_flow_mmd(model),
         }
@@ -715,7 +1172,7 @@ def write_architecture(project_root: Path) -> tuple[Path, ProjectModel]:
         (arch / "overview.md").write_text(_overview_md(model, diagrams), encoding="utf-8")
 
         meta = {
-            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "generated_at": now,
             "project": model.name,
             "stacks": model.stacks,
             "modules": model.modules,
@@ -728,19 +1185,10 @@ def write_architecture(project_root: Path) -> tuple[Path, ProjectModel]:
             json.dumps(meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
         )
 
-        nav_map = {
-            "generated_at": meta["generated_at"],
-            "modules": [
-                {"name": m, "path": m, "responsibility": ""} for m in model.modules
-            ],
-            "key_files": list(model.controllers[:24]),
-            "capabilities": list(model.stacks) + list(model.services),
-            "hotspots": list(model.controllers[:8]),
-            "excludes_applied": sorted(SKIP_DIRS),
-            "file_hashes": hashes,
-            "changed_paths": changed if old_hashes else sorted(hashes),
-            "notes": model.notes,
-        }
+        changed_out = changed if old_hashes else sorted(hashes)
+        nav_map = build_nav_map(
+            project_root, model, hashes, changed_out, model.notes
+        )
         map_path.write_text(
             json.dumps(nav_map, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
         )

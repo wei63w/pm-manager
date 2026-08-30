@@ -166,11 +166,21 @@ After the scan, open **`.pm/dashboard/index.html`** in a browser for the visual 
 | `pm init --skills-sh` | Also run `npx --yes skills@latest add wei63w/pm-manager -y` (needs Node) |
 | `pm install --agent …` | Refresh adapters without scaffolding |
 | `pm check [path]` | Diagnose `.pm/`, map, audit, `prd.status`, pending reviews |
-| `pm docs [path]` | Detect missing core docs; update `.pm/state/doc-index.md` (does not generate bodies) |
-| `pm status [path]` | List all open blocking/high todos (read-only, no 3-item cap) |
+| `pm docs [path]` | Detect missing/stale core docs; `--draft` writes `.pm/docs/drafts/` only |
+| `pm map [query]` | Query `map.json` (modules / capabilities / paths) |
+| `pm status [path]` | Snapshot + todos + session intent + top suggestions |
+| `pm log [text]` | Redact + classify one dialogue note (`--kind` / `--intent` / `--file`) |
+| `pm journal [path]` | Refresh timeline, change points, session intent, suggestions |
 | `pm dashboard [path]` | Rebuild `.pm/dashboard/` from module findings/todos |
-| `pm arch [path]` | Scan → Mermaid, `map.json`, annotated `tree.md` |
-| `pm export [path]` | Time-window desensitized audit Markdown (`--from` / `--to` / `--out`) |
+| `pm arch [path]` | Scan → Mermaid, `map.json`, `layer.mmd`, annotated `tree.md` |
+| `pm tests [path]` | List missing unit-test companions (does not write tests) |
+| `pm review` | Diff draft + `--cross` + `confirm|false_positive|later` + `annotate` |
+| `pm rules` | List / enable / disable / add coding rules |
+| `pm checkup` | On-demand five-dimension checkup (not a cron) |
+| `pm gate --path` | Pre-commit gate: secrets, syntax, rules, P0, high-risk |
+| `pm hook install\|status\|uninstall` | Optional local `.git/hooks/pre-commit` (not installed by `pm init`) |
+| `pm config apply <template>` | Fill missing keys from frontend/backend/service/script/auto |
+| `pm export [path]` | Bundle: audit, journal, snapshot, reviews, gaps, guard, arch paths |
 
 `pm-manager` is an alias of `pm`.
 
@@ -201,9 +211,13 @@ Natural-language routing (when slash commands are unavailable) is documented in 
 | Command | Agent skill | Description |
 |---------|-------------|-------------|
 | `/pm-all` | `pm-all` | Full **technical** scan + dashboard (draft PRD does not block) |
-| `/pm-review` | `pm-review` | Diff review with reasoning + `confirm` / `false_positive` / `later` |
+| `/pm-review` | `pm-review` | Diff review + cross-check + dispose into rules |
+| `/pm-checkup` | `pm-checkup` | On-demand checkup (P0/P1/P2); not part of daily status |
 | `/pm-check` | `pm-check` | Diagnose / repair `.pm/` without overwriting confirmed files |
 | `/pm-arch` | `pm-arch` | Generate architecture + map + annotated tree |
+| `/pm-docs` | `pm-docs` | Missing/stale docs; draft under `.pm/` until confirm |
+| `/pm-journal` | `pm-journal` | Session intent, timeline, change points, suggestions |
+| `/pm-tests` | `pm-tests` | Missing unit-test companions; confirm before writing tests |
 
 ### Planning & export
 

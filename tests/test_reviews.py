@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from pm_manager_cli.guard import qualify_reviews
 from pm_manager_cli.reviews import parse_reviews, pending_review_count
 
 
@@ -26,3 +27,16 @@ def test_pending_review_count(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     assert pending_review_count(tmp_path) == 2
+
+
+def test_qualify_reviews_rejects_missing_reasoning(tmp_path: Path) -> None:
+    dest = tmp_path / ".pm" / "engineering"
+    dest.mkdir(parents=True)
+    (dest / "reviews.md").write_text(
+        "| id | summary | reasoning | snippet | severity | disposition |\n"
+        "| REV-001 | 空泛 | — | — | P1 | unset |\n"
+        "| REV-002 | 合格 | 未校验空输入会误伤 | `if not x:` | P2 | unset |\n",
+        encoding="utf-8",
+    )
+    bad = qualify_reviews(tmp_path)
+    assert [r["id"] for r in bad] == ["REV-001"]

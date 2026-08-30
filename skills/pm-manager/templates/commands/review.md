@@ -1,5 +1,5 @@
 ---
-description: Review local git diff with reasoning + snippets; dispose findings (confirm / false_positive / later) into the rules library.
+description: Review local git diff with reasoning + snippets; cross-check; dispose findings into the rules library.
 handoffs:
   - label: Status
     agent: pm.status
@@ -13,41 +13,40 @@ handoffs:
 $ARGUMENTS
 ```
 
-Accepted extra words: `confirm REV-xxx` | `false_positive REV-xxx` | `later REV-xxx` | `--path=...` | `--verbose`.
+Accepted extra words: `confirm REV-xxx` | `false_positive REV-xxx` | `later REV-xxx` | `annotate REV-xxx` | `--cross` | `--path=...` | `--verbose`.
 
 ## Outline
 
-`/pm-review` is the **quality loop** users can see. Chinese replies when the user writes Chinese.
+`/pm-review` 是可见的质量闭环。用户以中文交互时用中文回复。未确认不改业务代码。
 
 ### A. New review (no disposition words)
 
-1. Require `.pm/`. Else recommend `/pm-init`.
-2. Collect the local diff: `git diff` + `git diff --cached` (and `--path` if given). If there is **no** change, say **没有可评的变更** and stop. Do not invent a pass.
-3. Load enabled rules from `.pm/engineering/rules.md`. Prefer `.pm/architecture/map.json` before opening files.
-4. Write qualified rows to `.pm/engineering/reviews.md`. Each row MUST have: `id` (`REV-xxx`), `summary`, `reasoning`, `snippet`, `severity` (P0/P1/P2), `disposition` (`unset`). Missing reasoning or snippet = unqualified; do not write it as a finding.
-5. P0 / blocking: interrupt in chat. P1/P2 stay in the report.
-6. Ask the user to reply with `confirm REV-xxx` / `false_positive REV-xxx` / `later REV-xxx`.
-7. Do **not** modify application code. Do **not** copy rows into `rules.md` until `confirm`.
+1. Require `.pm/`。缺则建议 `/pm-init`。
+2. 先跑 **`pm gate --path <root>`** 与 **`pm review --path <root>`**。读 `.pm/state/review-draft.md`、`guard.md`。无 diff 则说 **没有可评的变更** 并停止，不许编造通过。
+3. 地图优先。加载 `.pm/engineering/rules.md` 启用规则。对照旧/新行为。碰到 `risk_files` 必须打断并单独成行。
+4. 只润色或补**合格**行（`summary` + `reasoning` + `snippet` + `severity` + `file`/`line`）。缺推理或片段禁止落盘。
+5. 建议再跑 **`pm review --cross`**，对照 `.pm/state/cross-review.md` 用另一套检查单（安全 vs 完成度/文档），禁止复制初评空话、禁止同一 snippet 再标 new。
+6. P0 打断。P1/P2 进报告。单测缺口只警告。
+7. 请用户回复 `confirm REV-xxx` / `false_positive REV-xxx` / `later REV-xxx`。回填用 `pm review annotate REV-xxx`（只写 `.pm/reviews/annotations/`）。
 
-### B. Disposition (same session or later)
+### B. Disposition
 
-- `confirm REV-xxx`: set `disposition=confirmed`. Copy a rule into `.pm/engineering/rules.md` (`enabled: true`, `source_finding=REV-xxx`). Load it on later generate/review.
-- `false_positive REV-xxx`: set `disposition=false_positive`. Do not add a rule.
-- `later REV-xxx`: set `disposition=deferred`. Keep in the log only.
-
-If the user says `confirm` / `false_positive` / `later` without an id, apply to the **latest unset** row, or list ids and ask.
+- `confirm` → `pm review confirm REV-xxx`（或最新 unset）。仅合格行可进 `rules.md`。
+- `false_positive` → 不进规范。
+- `later` → 待优化，留在表里。
 
 ### C. After write
 
-Refresh overview pending-review count. Append audit (include reasoning). Closing: `_closing.md` 完整档（只列已有路径）。
+刷新总览待处置数。追加审计（含推理）。Closing：`_closing.md` 完整档。
 
 ## Done When
 
-- [ ] No-diff case said 没有可评的变更
-- [ ] Every written finding has reasoning + snippet
-- [ ] Only `confirmed` rows entered `rules.md`
-- [ ] App code unchanged unless the user separately confirmed a fix
+- [ ] 无 diff 时说了没有可评的变更
+- [ ] 每条落盘发现有推理 + 片段
+- [ ] 仅 confirmed 进入 rules.md
+- [ ] 回填未写入业务树
+- [ ] 业务代码未改，除非用户另确认修复
 
 ## Shared Workflow
 
-Map-first. Redact snippets before persist. Confirm-before-write for app code and official docs. Design baseline: `docs/prd.md` + 宪章。
+Map-first. Redact snippets. Confirm-before-write. Design baseline: `docs/prd.md` + 宪章。

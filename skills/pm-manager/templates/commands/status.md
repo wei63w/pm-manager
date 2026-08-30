@@ -20,7 +20,7 @@ Flags: `--verbose` (show medium/low). `--full` is deprecated: do **not** deep-sc
 `/pm-status` is a **health view**. Prefer not mutating module findings. You may refresh `overview.md` counts if stale.
 
 1. Require `.pm/config/project.yaml` else recommend `/pm-init`.
-2. Prefer **`pm status`** from the project root as the source of truth for blocking/high todos + missing-doc count + pending reviews. If the CLI is unavailable, parse `state/todo.md` and `.pm/engineering/reviews.md` the same way (**no 3-item cap**).
+2. Prefer **`pm status`**（会刷新并读取 `.pm/state/overview.md` / `report.md`）。先报现状快照：技术栈、模块数、缺失/过期文档、待办、待处置评审、**本轮意图**与前几条优化建议。CLI 不可用时读 `overview.md` + `todo.md` + `session.json`（**无 3 条上限**）。定位文件先 `pm map` / `map.json`。复盘走 `/pm-journal`。
 3. Do **not** run discover / `/pm-discover`. Deep scan is `/pm-all`.
 4. Aggregate open findings counts by severity; list blocking items.
 5. Show charter/outline/`prd.status`. Do **not** treat a draft PRD/charter as the baseline.

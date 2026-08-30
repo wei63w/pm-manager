@@ -124,7 +124,11 @@ def scaffold(project_root: Path) -> Path:
         audit.write_text("", encoding="utf-8")
     dialogue = pm / "state" / "dialogue.md"
     if not dialogue.exists():
-        dialogue.write_text("# Dialogue notes\n\n", encoding="utf-8")
+        dialogue.write_text(
+            "# 开发对话记录\n\n"
+            "> 脱敏后落盘。运行 `pm log` 或 `/pm-journal` 追加本轮意图。\n\n",
+            encoding="utf-8",
+        )
     # Never modify a shared .gitignore — local exclude only (constitution I).
     ensure_git_exclude(project_root)
 

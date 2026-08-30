@@ -82,6 +82,14 @@ def collect_checks(root: Path) -> list[CheckItem]:
             "" if (pm / "state" / "doc-index.md").is_file() else "运行 `pm docs`",
         )
     )
+    journal_ok = (pm / "state" / "timeline.md").is_file()
+    items.append(
+        CheckItem(
+            ".pm/state/timeline.md",
+            journal_ok,
+            "" if journal_ok else "运行 `pm journal` 或 `/pm-journal`",
+        )
+    )
     dash = (pm / "dashboard" / "index.html").is_file()
     items.append(
         CheckItem(
@@ -135,6 +143,17 @@ def collect_checks(root: Path) -> list[CheckItem]:
             "无" if pending == 0 else f"{pending} 条 — 用 /pm-review 处置",
         )
     )
+    from pm_manager_cli.hooks import hook_status
+
+    st = hook_status(root)
+    hook_detail = {
+        "skipped": "非 git 仓库",
+        "absent": "未安装（可选 pm hook install，非错误）",
+        "installed": "已安装本工具钩子",
+        "foreign": "已有外来钩子",
+        "unreadable": "无法读取",
+    }.get(st, st)
+    items.append(CheckItem("git pre-commit", True, hook_detail))
     return items
 
 
@@ -152,4 +171,6 @@ def repair_hints(items: list[CheckItem]) -> list[str]:
         hints.append("运行 `pm dashboard` 或 `/pm-all` 生成看板")
     if names.get(".pm/state/doc-index.md") and not names[".pm/state/doc-index.md"].ok:
         hints.append("运行 `pm docs` 刷新文档索引")
+    if names.get(".pm/state/timeline.md") and not names[".pm/state/timeline.md"].ok:
+        hints.append("运行 `pm journal` 生成时间线与优化建议")
     return hints

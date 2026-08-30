@@ -1,0 +1,10 @@
+profile: frontend
+docs:
+  required: [DOC-agents, DOC-prd, DOC-design, DOC-api, DOC-deploy]
+review:
+  gate_on_commit: false
+  require_reasoning: true
+checkup:
+  enabled: false
+scan:
+  exclude_dirs: [node_modules, dist, build, .next, .nuxt, coverage, .git, .pm]

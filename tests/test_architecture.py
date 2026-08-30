@@ -42,6 +42,42 @@ def test_incremental_changed_paths(tmp_path: Path) -> None:
     assert any("incremental" in n for n in model.notes)
 
 
+def test_map_key_files_are_paths(tmp_path: Path) -> None:
+    root = _app_tree(tmp_path)
+    (root / "README.md").write_text("# Demo\n\nA sample app.\n", encoding="utf-8")
+    arch, _model = write_architecture(root)
+    data = json.loads((arch / "map.json").read_text(encoding="utf-8"))
+    paths = []
+    for item in data["key_files"]:
+        if isinstance(item, dict):
+            paths.append(item["path"])
+        else:
+            paths.append(item)
+    assert any("/" in p or p.endswith(".py") or p.endswith(".md") for p in paths)
+    assert any("app.py" in p for p in paths)
+    for mod in data["modules"]:
+        assert isinstance(mod, dict)
+        assert "path" in mod
+        assert "responsibility" in mod
+    assert (arch / "layer.mmd").is_file()
+    overview = (arch / "overview.md").read_text(encoding="utf-8")
+    assert "架构总览" in overview
+    risks = data.get("risk_files") or []
+    risk_paths = [r["path"] if isinstance(r, dict) else r for r in risks]
+    assert any("app.py" in str(p) for p in risk_paths)
+
+
+def test_second_arch_without_change_reuses_modules(tmp_path: Path) -> None:
+    root = _app_tree(tmp_path)
+    arch, _ = write_architecture(root)
+    first = json.loads((arch / "map.json").read_text(encoding="utf-8"))
+    arch2, model = write_architecture(root)
+    second = json.loads((arch2 / "map.json").read_text(encoding="utf-8"))
+    assert first["modules"] == second["modules"]
+    assert second["changed_paths"] == []
+    assert any("reused map" in n for n in model.notes)
+
+
 def test_unreadable_file_does_not_abort(tmp_path: Path, monkeypatch) -> None:
     root = _app_tree(tmp_path)
     from pm_manager_cli import architecture as arch_mod

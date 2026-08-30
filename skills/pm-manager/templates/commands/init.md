@@ -133,7 +133,7 @@ Do **not** run a full module deep-scan here. Deep scan is `/pm-all` (default tec
 
 Refresh `state/overview.md` with: lifecycle, type, Spec Kit yes/no, `prd.status`, wizard next step (`confirm` or `/pm-status`).
 
-Append a short desensitized dialogue note to `.pm/state/dialogue.md` (kind + intent files if parseable; else `unresolved` — never invent file lists).
+Prefer **`pm log --kind consult --intent "…"`** (or the user's one-line intent) so the CLI redacts and refreshes `.pm/state/dialogue.md` + timeline. If CLI is unavailable, append the same fields yourself. Unclear → `unresolved`; never invent file lists. Then `pm journal` is optional.
 
 If `.pm/` metadata is already valid, **do not** force a full-repo rescan; load assets and only incrementally refresh.
 

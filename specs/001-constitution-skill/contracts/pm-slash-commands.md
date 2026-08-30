@@ -29,8 +29,18 @@ Cursor / Claude 适配器必须与源模板行为一致。
 
 ## `/pm-arch`
 
-- **必须**: 先读已有 `map.json`；生成/增量更新地图与 Mermaid 到 `.pm/architecture/`
+- **必须**: 先读已有 `map.json`；生成/增量更新地图与 Mermaid 到 `.pm/architecture/`；`key_files` 为真实路径；无变更时复用地图
 - **禁止**: 默认写入业务树；无过滤递归依赖目录
+
+## `/pm-docs`
+
+- **必须**: 刷新核心文档索引（含 `possibly_stale`）；双模式自备或 `.pm/docs/drafts/` 起草；确认前不写业务树
+- **禁止**: 未确认覆盖正式 `docs/` / `AGENTS.md`
+
+## `/pm-journal`
+
+- **必须**: 按需（非后台监听）脱敏落盘对话；解析本轮意图与用户点名的变更文件；刷新时间线与优化建议
+- **禁止**: 编造文件列表；未确认改业务代码；把建议自动写成待办
 
 ## `/pm-all`
 
@@ -44,8 +54,13 @@ Cursor / Claude 适配器必须与源模板行为一致。
 
 ## `/pm-review`
 
-- **必须**: 对本地 diff 做带推理+片段的评审；无 diff 明示没有可评的；`confirm` / `false_positive` / `later`；仅 confirmed 进规范库
-- **禁止**: 未确认改业务代码；无证据结论
+- **必须**: 先 `pm review` / `pm gate`；对本地 diff 做带推理+片段的评审；无 diff 明示没有可评的；可选 `--cross`；`confirm` / `false_positive` / `later`；仅合格 confirmed 进规范库；回填只写 `.pm/reviews/annotations/`
+- **禁止**: 未确认改业务代码；无证据结论；同一 snippet 交叉复核再标 new
+
+## `/pm-checkup`
+
+- **必须**: 按需五维体检（安全/功能/完成度/质量/文档）+ P0/P1/P2；地图优先抽样
+- **禁止**: 当日常默认；后台定时；未确认改业务代码
 
 ## `/pm-check`
 
@@ -55,9 +70,14 @@ Cursor / Claude 适配器必须与源模板行为一致。
 
 - **必须**: 无参数时给出 create/import/discover/approve/skip 向导；approve 才把宪章当基线；技术扫描不要求 approve
 
+## `/pm-tests`
+
+- **必须**: 列出核心/变更源的单测缺口与建议落点；确认前不写业务树测试
+- **禁止**: 未确认生成测试文件
+
 ## `/pm-export`
 
-- **必须**: 按时间窗导出审计（**先脱敏再落盘**）；不得含秘密原文；若仍有残留则删除文件并失败
+- **必须**: 按时间窗导出审计 + 对话 + 快照/评审/缺口/guard/架构路径（**先脱敏再落盘**）；不得含秘密原文；若仍有残留则删除文件并失败
 
 ## `/pm-outline`
 

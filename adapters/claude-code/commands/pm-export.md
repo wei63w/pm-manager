@@ -10,8 +10,8 @@ $ARGUMENTS
 
 ## Outline
 
-1. Prefer **`pm export`** from the project root (`--from` / `--to` / `--out`). Default output: `.pm/exports/pm-export-YYYYMMDD.md`.
-2. If the CLI is unavailable, build markdown yourself: overview, open blocking/high todos, blocking findings, charter summary, milestones, **and** `.pm/state/audit.jsonl` rows in the requested time window (default: all). **Redact the body before writing.** If residue remains (`AKIA…`, `BEGIN PRIVATE KEY`), do not keep the file — delete it and fail.
+1. Prefer **`pm export`** from the project root (`--from` / `--to` / `--out`，可选 `--with-diagrams`)。Default output: `.pm/exports/pm-export-YYYYMMDD.md`。
+2. The file must include: audit window, dialogue notes, snapshot excerpt, reviews table, test-gaps, guard, and architecture **paths** (embed `.mmd` only with `--with-diagrams`). If the CLI is unavailable, assemble the same sections and **redact before writing**. If residue remains (`AKIA…`, `BEGIN PRIVATE KEY`), delete the file and fail.
 3. Exclude `local.yaml`, credentials, raw logs, secret originals. Never include un-redacted secrets.
 4. Show the export path and ask the user to open it.
 

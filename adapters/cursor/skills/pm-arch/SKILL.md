@@ -16,16 +16,15 @@ $ARGUMENTS
 ## Outline
 
 1. Require `.pm/` initialized; else recommend `/pm-init`.
-2. Run **`pm arch`** from the project root (preferred). This writes:
-   - `.pm/architecture/system-context.mmd` — system context (C4 L1 style)
-   - `.pm/architecture/service-dependencies.mmd` — module/service dependency graph
-   - `.pm/architecture/request-flow.mmd` — request flowchart
-   - `.pm/architecture/deploy-flow.mmd` — build/deploy flowchart
-   - `.pm/architecture/map.json` — structured nav map for later agent reads
-   - `.pm/architecture/tree.md` — annotated directory tree (ignore dirs skipped)
-   - `.pm/architecture/overview.md` — embeds all Mermaid diagrams + detected summary
-   - `.pm/architecture/scan.json` — machine-readable scan meta
-3. If a valid `map.json` already exists, prefer incremental (`pm arch` uses mtime/size hashes). Skip `node_modules`, build, logs, and `scan.exclude_dirs`.
+2. 若已有 `map.json`，先读它。定位文件用 **`pm map <关键词>`**，禁止无过滤全库递归。
+3. Run **`pm arch`** from the project root (preferred). This writes:
+   - `.pm/architecture/map.json` — 导航地图（modules / key_files / capabilities / hotspots / lookup）
+   - `.pm/architecture/tree.md` — 带注解目录树
+   - `.pm/architecture/overview.md` — 中文总览 + Mermaid
+   - `.pm/architecture/layer.mmd` — 分层架构
+   - `.pm/architecture/system-context.mmd` / `service-dependencies.mmd` / `request-flow.mmd` / `deploy-flow.mmd`
+   - `.pm/architecture/scan.json`
+4. If a valid `map.json` already exists and nothing changed, CLI reuses the map (timestamp only). Skip `node_modules`, build, logs, and `scan.exclude_dirs`.
 4. If CLI is unavailable, generate the same files yourself by scanning (still skip ignore dirs; isolate per-file read failures).
 5. Review diagrams: fix wrong edges, rename nodes, add missing externals. Prefer editing the `.mmd` files then refreshing the Mermaid blocks in `overview.md`.
 6. Optional charter compare: mark out-of-scope services or missing in-scope capabilities in `architecture/findings.md` (with confidence) **only if charter is approved**.
@@ -34,7 +33,7 @@ $ARGUMENTS
 
 ## Done When
 
-- [ ] Four `.mmd` files + `overview.md` + `map.json` + `tree.md` exist under `.pm/architecture/`
+- [ ] `map.json` has path-based `key_files` and non-empty module paths; `layer.mmd` exists
 - [ ] Diagrams reflect this repo (not generic placeholders)
 - [ ] Ignore dirs were skipped; no secrets in diagram labels or findings
 

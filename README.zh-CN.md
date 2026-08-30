@@ -166,11 +166,21 @@ pm check
 | `pm init --skills-sh` | 额外执行 `npx --yes skills@latest add wei63w/pm-manager -y`（需要 Node） |
 | `pm install --agent …` | 刷新适配器，不重新搭脚手架 |
 | `pm check [path]` | 诊断 `.pm/`、地图、审计、`prd.status`、待处置评审 |
-| `pm docs [path]` | 检测核心文档缺失并更新 `.pm/state/doc-index.md`（不生成正文） |
-| `pm status [path]` | 列出全部未关闭阻断/高优先级待办（只读，无 3 条上限） |
+| `pm docs [path]` | 检测缺失/过期核心文档；`--draft` 只写 `.pm/docs/drafts/` |
+| `pm map [query]` | 查询 `map.json`（模块 / 能力 / 路径） |
+| `pm status [path]` | 现状快照 + 待办 + 本轮意图 + 优化建议 |
+| `pm log [text]` | 脱敏并分类一条对话（`--kind` / `--intent` / `--file`） |
+| `pm journal [path]` | 刷新时间线、变更点、本轮意图、优化建议 |
 | `pm dashboard [path]` | 按模块 findings/todos 重建 `.pm/dashboard/` |
-| `pm arch [path]` | 扫描项目 → Mermaid、`map.json`、带注解目录树 `tree.md` |
-| `pm export [path]` | 按时间窗导出脱敏审计 Markdown（`--from` / `--to` / `--out`） |
+| `pm arch [path]` | 扫描 → Mermaid、`map.json`、`layer.mmd`、带注解目录树 |
+| `pm tests [path]` | 列出单测缺口（不写业务树测试） |
+| `pm review` | Diff 草稿 + `--cross` + 处置 + 回填草稿 |
+| `pm rules` | 列出 / 启用 / 禁用 / 新增规范 |
+| `pm checkup` | 按需五维体检（无定时器） |
+| `pm gate --path` | 提交前门禁：密钥、语法、规范、P0、高危 |
+| `pm hook install\|status\|uninstall` | 可选安装本地 `.git/hooks/pre-commit`（init 不自动装） |
+| `pm config apply <template>` | 按 frontend/backend/service/script/auto 只补缺失键 |
+| `pm export [path]` | 批量导出：审计、对话、快照、评审、缺口、guard、架构路径 |
 
 `pm-manager` 是 `pm` 的别名。
 
@@ -201,9 +211,13 @@ pm check
 | 命令 | Agent 技能 | 说明 |
 |------|------------|------|
 | `/pm-all` | `pm-all` | 全量**技术**扫描 + 看板（草稿 PRD 不拦截） |
-| `/pm-review` | `pm-review` | Diff 评审（推理+片段）；`confirm` / `false_positive` / `later` |
+| `/pm-review` | `pm-review` | Diff 评审 + 交叉复核 + 沉淀规范 |
+| `/pm-checkup` | `pm-checkup` | 按需体检（P0/P1/P2）；不进日常 status |
 | `/pm-check` | `pm-check` | 诊断/修复 `.pm/`，不覆盖已确认文件 |
 | `/pm-arch` | `pm-arch` | 生成架构图、地图与带注解目录树 |
+| `/pm-docs` | `pm-docs` | 缺失/过期文档；草稿只在 `.pm/`，确认后才落正式路径 |
+| `/pm-journal` | `pm-journal` | 本轮意图、迭代时间线、变更点、优化建议 |
+| `/pm-tests` | `pm-tests` | 单测缺口；确认前不写测试文件 |
 
 ### 规划与导出
 

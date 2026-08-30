@@ -58,7 +58,8 @@
 ### 评审条目 (ReviewFinding)
 
 - **位置**: `.pm/` 下评审记录（建议 `.pm/engineering/reviews/<timestamp>.md`）
-- **必填字段**: `summary`、`reasoning`、`snippet`、`severity`（P0/P1/P2 映射 blocking/high/其他）、`disposition`（unset | confirmed | false_positive | deferred）
+- **必填字段**: `summary`、`reasoning`、`snippet`、`severity`（P0/P1/P2）、`disposition`（unset | confirmed | false_positive | deferred）
+- **可选**: `file`、`line`、`dimension`（security|quality|complete|docs|logic）、`cross`（unset|agree|new|reject）
 - **校验**: 缺 `reasoning` 或 `snippet` → 不合格，不得沉淀规范
 - **转换**: `unset -> confirmed | false_positive | deferred`
 
@@ -82,9 +83,48 @@
 
 ### 对话摘要 (DialogueNote)
 
-- **位置**: `.pm/state/dialogue.md` 或按日切片
-- **字段**: `ts`、`kind`（consult | code | fix | docs | other）、`intent?`、`files[]?`、`status`（parsed | unresolved）
+- **位置**: `.pm/state/dialogue.md` + `.pm/state/dialogue.jsonl`
+- **字段**: `ts`、`kind`（consult | code | fix | docs | refactor | other）、`intent?`、`files[]?`、`status`（parsed | unresolved）、`excerpt?`
 - **规则**: 脱敏后落盘；不可判断时 `unresolved`，禁止编造文件列表
+
+### 会话意图 (SessionIntent)
+
+- **位置**: `.pm/state/session.json`
+- **字段**: `generated_at`、`kind`、`goal`、`files[]`、`status`、`note_count`
+- **规则**: 由最近对话摘要聚合；无摘要时 `goal=信息不足`
+
+### 变更点 (ChangePoint)
+
+- **位置**: `.pm/state/changes.md`
+- **字段**: `path`、`source`（map | git）
+- **规则**: 来自 `map.json` 的 `changed_paths` 与 git（失败忽略）；不含 `.pm/`
+
+### 迭代时间线 (TimelineEvent)
+
+- **位置**: `.pm/state/timeline.md`
+- **字段**: `ts`、`kind`（audit | dialogue-kind | change）、`title`、`detail`
+
+### 优化建议 (Suggestion)
+
+- **位置**: `.pm/state/suggestions.md`
+- **字段**: `id`（SUG-xxx）、`priority`（P0 | P1 | P2）、`title`、`reason`、`action`
+- **规则**: 只提示，不自动改业务树，不自动建待办
+
+### 高危文件 (RiskFile)
+
+- **位置**: `.pm/architecture/map.json` 的 `risk_files[]`
+- **字段**: `path`、`flags[]`（entry | hotspot | bulky | uncommented）、`reasons[]`
+
+### 单测缺口 (TestGap)
+
+- **位置**: `.pm/state/test-gaps.md`
+- **字段**: `path`、`suggest`、`changed`
+- **规则**: 不自动写业务树测试
+
+### 幻觉防御 (GuardReport)
+
+- **位置**: `.pm/state/guard.md`
+- **字段**: 不合格评审、逻辑丢失嫌疑、本轮碰到的高危文件
 
 ## 关系
 
@@ -96,7 +136,11 @@ Workbench
 ├── ReviewFinding * —0..1 Rule
 ├── Evidence *
 ├── AuditEvent *
-└── DialogueNote *
+├── DialogueNote *
+├── SessionIntent 1
+├── ChangePoint *
+├── TimelineEvent *
+└── Suggestion *
 ```
 
 ## 校验摘要
